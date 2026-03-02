@@ -10,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 import app.models  # Cargar TODOS los modelos antes que los routers
-from app.routers import auth, tables, orders, kitchen, menu, seed, cocina_1, pedido_1
+from app.routers import auth, tables, orders, kitchen, menu, seed, cocina_1, cocina_movil, pedido_1
 
 # --- App ---
 app = FastAPI(
@@ -49,4 +49,5 @@ app.include_router(kitchen.router, prefix="/api/v1/kitchen", tags=["Kitchen/KDS"
 app.include_router(seed.router,    prefix="/api/v1/seed",    tags=["Seed (dev)"])
 app.include_router(menu.router,    prefix="/api/v1/menu",    tags=["Menu"])
 app.include_router(cocina_1.router, tags=["KDS Screen"])
+app.include_router(cocina_movil.router, tags=["KDS Mobile"])
 app.include_router(pedido_1.router, tags=["POS Mesero"])
