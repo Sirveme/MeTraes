@@ -1,0 +1,48 @@
+"""
+cocina_1.py — Router para servir la pantalla KDS.
+Inyecta la configuración del restaurante en el template.
+"""
+
+from fastapi import APIRouter, Depends, Request
+from fastapi.templating import Jinja2Templates
+from sqlalchemy.orm import Session
+
+from app.core.database import get_db
+
+router = APIRouter()
+templates = Jinja2Templates(directory="templates")
+
+
+@router.get("/cocina")
+async def kds_screen(
+    request: Request,
+    restaurant_id: int = 1,
+    station_id: int = None,
+    db: Session = Depends(get_db),
+):
+    """
+    Pantalla KDS para TV de cocina.
+    URL: /cocina?restaurant_id=1&station_id=2
+    """
+    # Config que se inyecta al template (el JS la lee)
+    config = {
+        "restaurant_id": restaurant_id,
+        "station_id": station_id,
+        "api_base": "/api/v1",
+        "ws_base": f"ws://{request.headers.get('host', 'localhost:8000')}/api/v1/kitchen/ws",
+        "kitchen": {
+            "target_time_minutes": 15,
+            "warning_time_minutes": 20,
+            "alert_time_minutes": 25,
+            "kds_columns": 4,
+            "kds_font_size_base": 24,
+            "sound_new_order": True,
+        },
+    }
+
+    return templates.TemplateResponse("cocina_1.html", {
+        "request": request,
+        "config": config,
+        "restaurant_id": restaurant_id,
+        "station_id": station_id,
+    })
