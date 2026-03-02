@@ -15,7 +15,7 @@ from app.schemas import TableCreate, TableStatusUpdate, TableTransfer
 router = APIRouter()
 
 
-@router.get("/")
+@router.get("")
 async def list_tables(
     zone_id: int = None,
     branch_id: int = None,
@@ -41,7 +41,7 @@ async def list_tables(
     return [_table_to_dict(t) for t in tables]
 
 
-@router.post("/", status_code=status.HTTP_201_CREATED)
+@router.post("", status_code=status.HTTP_201_CREATED)
 async def create_table(
     data: TableCreate,
     db: Session = Depends(get_db),

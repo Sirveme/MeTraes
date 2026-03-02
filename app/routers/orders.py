@@ -17,7 +17,7 @@ from app.websocket.manager import manager
 router = APIRouter()
 
 
-@router.post("/", status_code=status.HTTP_201_CREATED)
+@router.post("", status_code=status.HTTP_201_CREATED)
 async def create_order(
     data: OrderCreate,
     db: Session = Depends(get_db),
@@ -94,7 +94,7 @@ async def get_order(
     return _order_to_dict(db, order)
 
 
-@router.get("/")
+@router.get("")
 async def list_orders(
     status_filter: str = None,
     table_id: int = None,

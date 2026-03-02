@@ -25,11 +25,17 @@ async def kds_screen(
     URL: /cocina?restaurant_id=1&station_id=2
     """
     # Config que se inyecta al template (el JS la lee)
+    # Detectar protocolo (Railway usa HTTPS)
+    is_https = request.headers.get('x-forwarded-proto', 'http') == 'https' or \
+               request.url.scheme == 'https'
+    ws_proto = 'wss' if is_https else 'ws'
+    host = request.headers.get('host', 'localhost:8000')
+
     config = {
         "restaurant_id": restaurant_id,
         "station_id": station_id,
         "api_base": "/api/v1",
-        "ws_base": f"ws://{request.headers.get('host', 'localhost:8000')}/api/v1/kitchen/ws",
+        "ws_base": f"{ws_proto}://{host}/api/v1/kitchen/ws",
         "kitchen": {
             "target_time_minutes": 15,
             "warning_time_minutes": 20,
