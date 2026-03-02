@@ -1,0 +1,32 @@
+# Metraes.com — POS Restaurantes + KDS + Carta Virtual
+# FastAPI + PostgreSQL en Railway
+
+# --- Framework ---
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+
+# --- Database ---
+sqlalchemy==2.0.36
+psycopg2-binary==2.9.10
+alembic==1.14.1
+
+# --- Auth ---
+pyjwt==2.10.1
+passlib[bcrypt]==1.7.4
+
+# --- Validation / Settings ---
+pydantic==2.10.4
+pydantic-settings==2.7.1
+
+# --- Templates ---
+jinja2==3.1.5
+
+# --- HTTP Client (para Facturalo.pro API) ---
+httpx==0.28.1
+
+# --- WebSocket ---
+websockets==14.1
+
+# --- Utilidades ---
+python-multipart==0.0.20
+python-dotenv==1.0.1

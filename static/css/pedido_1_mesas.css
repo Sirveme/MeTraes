@@ -1,0 +1,178 @@
+/* ============================================
+   pedido_1_mesas.css — Mapa de Mesas
+   Grid visual de mesas por zona con colores
+   de estado. Touch-friendly, mobile-first.
+   ============================================ */
+
+/* --- Zone tabs --- */
+.zone-tabs {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding: 4px 0;
+}
+.zone-tabs::-webkit-scrollbar { display: none; }
+
+.zone-tab {
+    padding: 6px 16px;
+    border: 1.5px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--bg-primary);
+    color: var(--text-secondary);
+    font-family: var(--font-main);
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s;
+}
+.zone-tab:active { transform: scale(0.96); }
+.zone-tab.active {
+    background: var(--accent-blue);
+    border-color: var(--accent-blue);
+    color: white;
+}
+.zone-tab .zone-count {
+    margin-left: 4px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    opacity: 0.7;
+}
+
+/* --- Tables grid --- */
+.tables-grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 10px;
+    padding: 12px;
+    overflow-y: auto;
+    align-content: start;
+}
+
+/* --- Table card --- */
+.table-card {
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    border: 2px solid var(--border-color);
+    cursor: pointer;
+    transition: all 0.15s;
+    position: relative;
+    gap: 4px;
+    min-height: 100px;
+}
+.table-card:active { transform: scale(0.95); }
+
+.table-card .table-number {
+    font-family: var(--font-mono);
+    font-size: 28px;
+    font-weight: 900;
+    line-height: 1;
+}
+.table-card .table-zone-tag {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-muted);
+    letter-spacing: 0.5px;
+}
+.table-card .table-cap {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+.table-card .table-waiter {
+    font-size: 11px;
+    color: var(--text-muted);
+    position: absolute;
+    bottom: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 90%;
+}
+.table-card .table-order-badge {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--accent-orange);
+}
+
+/* --- Table status colors --- */
+.table-card.free {
+    background: rgba(34, 197, 94, 0.08);
+    border-color: rgba(34, 197, 94, 0.3);
+}
+.table-card.free .table-number { color: var(--accent-green); }
+.table-card.free:hover {
+    background: rgba(34, 197, 94, 0.15);
+    border-color: var(--accent-green);
+}
+
+.table-card.occupied {
+    background: rgba(59, 130, 246, 0.08);
+    border-color: rgba(59, 130, 246, 0.3);
+}
+.table-card.occupied .table-number { color: var(--accent-blue); }
+.table-card.occupied:hover { border-color: var(--accent-blue); }
+
+.table-card.waiting {
+    background: rgba(234, 179, 8, 0.08);
+    border-color: rgba(234, 179, 8, 0.3);
+}
+.table-card.waiting .table-number { color: var(--accent-yellow); }
+.table-card.waiting:hover { border-color: var(--accent-yellow); }
+
+.table-card.bill {
+    background: rgba(249, 115, 22, 0.08);
+    border-color: rgba(249, 115, 22, 0.3);
+}
+.table-card.bill .table-number { color: var(--accent-orange); }
+
+.table-card.reserved {
+    background: rgba(139, 92, 246, 0.08);
+    border-color: rgba(139, 92, 246, 0.3);
+}
+.table-card.reserved .table-number { color: var(--accent-purple); }
+
+.table-card.cleaning {
+    background: rgba(96, 96, 120, 0.08);
+    border-color: rgba(96, 96, 120, 0.3);
+}
+.table-card.cleaning .table-number { color: var(--text-muted); }
+
+/* --- Legend --- */
+.table-legend {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    padding: 8px 12px;
+    background: var(--bg-secondary);
+    border-top: 1px solid var(--border-color);
+}
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--text-muted);
+}
+.legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+/* --- Round tables (barra) --- */
+.table-card.round { border-radius: 50%; }
+
+@media (max-width: 400px) {
+    .tables-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 8px; }
+    .table-card .table-number { font-size: 24px; }
+}

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KDS — Cocina | Metraes.com</title>
+    
+    <!-- Fuentes: Roboto Condensed para legibilidad a distancia -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700;900&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+    
+    <!-- CSS por componente (convención Metraes) -->
+    <link rel="stylesheet" href="/static/css/cocina_1.css">
+    <link rel="stylesheet" href="/static/css/cocina_1_cards.css">
+    <link rel="stylesheet" href="/static/css/cocina_1_timer.css">
+</head>
+<body>
+    <!-- ============================================ -->
+    <!-- HEADER: Estaciones + Reloj + Estado conexión -->
+    <!-- ============================================ -->
+    <header id="kds-header">
+        <div class="header-left">
+            <h1 class="kds-title">🔥 COCINA</h1>
+            <span id="connection-status" class="status-badge status-connecting">
+                ⏳ Conectando...
+            </span>
+        </div>
+        
+        <nav id="station-filters" class="station-filters">
+            <button class="station-btn active" data-station-id="all">
+                TODAS
+                <span class="station-count" id="count-all">0</span>
+            </button>
+            <!-- Se llena dinámicamente con las estaciones -->
+        </nav>
+        
+        <div class="header-right">
+            <span id="orders-count" class="orders-count">0 pedidos</span>
+            <span id="clock" class="clock">--:--</span>
+            <button id="btn-fullscreen" class="btn-icon" title="Pantalla completa">⛶</button>
+            <button id="btn-sound" class="btn-icon sound-on" title="Sonido">🔊</button>
+        </div>
+    </header>
+
+    <!-- ============================================ -->
+    <!-- GRID DE PEDIDOS (cards grandes para TV)      -->
+    <!-- ============================================ -->
+    <main id="kds-grid" class="kds-grid">
+        <!-- Cards se generan dinámicamente -->
+        
+        <!-- Estado vacío -->
+        <div id="empty-state" class="empty-state">
+            <div class="empty-icon">👨‍🍳</div>
+            <div class="empty-text">Sin pedidos pendientes</div>
+            <div class="empty-sub">Los pedidos aparecerán aquí en tiempo real</div>
+        </div>
+    </main>
+
+    <!-- ============================================ -->
+    <!-- ALERTA NUEVO PEDIDO (flash visual)           -->
+    <!-- ============================================ -->
+    <div id="new-order-flash" class="new-order-flash hidden">
+        <div class="flash-content">
+            <span class="flash-icon">🔔</span>
+            <span class="flash-text">NUEVO PEDIDO</span>
+            <span id="flash-detail" class="flash-detail">#001 - Mesa 5</span>
+        </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- AUDIO (sonidos de alerta)                    -->
+    <!-- ============================================ -->
+    <audio id="sound-new-order" preload="auto">
+        <source src="/static/audio/new_order.wav" type="audio/wav">
+    </audio>
+    <audio id="sound-urgent" preload="auto">
+        <source src="/static/audio/urgent.wav" type="audio/wav">
+    </audio>
+
+    <!-- ============================================ -->
+    <!-- CONFIG (inyectada por Jinja2 desde Python)   -->
+    <!-- ============================================ -->
+    <script>
+        window.KDS_CONFIG = {{ config | tojson }};
+    </script>
+
+    <!-- JS por módulo (convención Metraes) -->
+    <script src="/static/js/cocina_1_ws.js"></script>
+    <script src="/static/js/cocina_1.js"></script>
+</body>
+</html>

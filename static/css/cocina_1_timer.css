@@ -1,0 +1,97 @@
+/* ============================================
+   cocina_1_timer.css — Timer Component
+   Reloj visible en cada card. Cambia de color
+   según tiempo: normal → warning → alert.
+   Legible a 2 metros de distancia.
+   ============================================ */
+
+.timer {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 22px;
+    letter-spacing: 1px;
+    transition: color 0.5s;
+}
+
+/* --- Timer states --- */
+.timer.normal {
+    color: var(--text-secondary);
+}
+
+.timer.warning {
+    color: var(--color-preparing);
+}
+
+.timer.alert {
+    color: var(--color-delayed);
+    animation: timer-blink 1s infinite;
+}
+
+@keyframes timer-blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.timer.critical {
+    color: var(--color-urgent);
+    font-size: 26px;
+    animation: timer-blink 0.5s infinite;
+}
+
+/* --- Timer icon --- */
+.timer-icon {
+    font-size: 18px;
+}
+
+.timer.normal .timer-icon { color: var(--text-muted); }
+.timer.warning .timer-icon { color: var(--color-preparing); }
+.timer.alert .timer-icon { color: var(--color-delayed); }
+.timer.critical .timer-icon { color: var(--color-urgent); }
+
+/* --- Timer in header (global clock) --- */
+.clock {
+    font-family: var(--font-mono);
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    letter-spacing: 2px;
+}
+
+/* --- Timer bar (progress visual at bottom of card) --- */
+.timer-bar {
+    height: 4px;
+    background: var(--border-color);
+    border-radius: 0 0 var(--border-radius) 0;
+    overflow: hidden;
+}
+
+.timer-bar-fill {
+    height: 100%;
+    border-radius: inherit;
+    transition: width 1s linear, background 0.5s;
+}
+
+.timer-bar-fill.normal {
+    background: var(--color-ready);
+}
+
+.timer-bar-fill.warning {
+    background: var(--color-preparing);
+}
+
+.timer-bar-fill.alert {
+    background: var(--color-delayed);
+}
+
+.timer-bar-fill.critical {
+    background: var(--color-urgent);
+    animation: bar-pulse 0.8s infinite;
+}
+
+@keyframes bar-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}

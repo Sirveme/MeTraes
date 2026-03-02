@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>POS Mesero | Metraes.com</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700;900&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/pedido_1.css">
+    <link rel="stylesheet" href="/static/css/pedido_1_mesas.css">
+    <link rel="stylesheet" href="/static/css/pedido_1_orden.css">
+</head>
+<body>
+
+    <!-- =============================== -->
+    <!-- SCREEN 1: LOGIN PIN             -->
+    <!-- =============================== -->
+    <section id="screen-login" class="screen active">
+        <div class="login-container">
+            <div class="login-logo">🍽️</div>
+            <h1 class="login-title">Metraes</h1>
+            <p class="login-sub">Ingresa tu PIN</p>
+            <div id="pin-display" class="pin-display">
+                <span class="pin-dot"></span>
+                <span class="pin-dot"></span>
+                <span class="pin-dot"></span>
+                <span class="pin-dot"></span>
+            </div>
+            <div id="login-error" class="login-error hidden"></div>
+            <div class="pin-pad">
+                <button class="pin-key" data-key="1">1</button>
+                <button class="pin-key" data-key="2">2</button>
+                <button class="pin-key" data-key="3">3</button>
+                <button class="pin-key" data-key="4">4</button>
+                <button class="pin-key" data-key="5">5</button>
+                <button class="pin-key" data-key="6">6</button>
+                <button class="pin-key" data-key="7">7</button>
+                <button class="pin-key" data-key="8">8</button>
+                <button class="pin-key" data-key="9">9</button>
+                <button class="pin-key pin-key-clear" data-key="clear">✕</button>
+                <button class="pin-key" data-key="0">0</button>
+                <button class="pin-key pin-key-enter" data-key="enter">→</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- =============================== -->
+    <!-- SCREEN 2: MAPA DE MESAS         -->
+    <!-- =============================== -->
+    <section id="screen-tables" class="screen">
+        <header class="pos-header">
+            <div class="pos-header-left">
+                <h2 class="pos-title">Mesas</h2>
+                <span id="user-badge" class="user-badge"></span>
+            </div>
+            <div class="pos-header-center">
+                <div id="zone-tabs" class="zone-tabs">
+                    <!-- Tabs de zonas se generan dinámicamente -->
+                </div>
+            </div>
+            <div class="pos-header-right">
+                <button id="btn-takeaway" class="btn-action btn-takeaway">📦 Para llevar</button>
+                <button id="btn-logout" class="btn-action btn-logout">Salir</button>
+            </div>
+        </header>
+        <main id="tables-grid" class="tables-grid">
+            <!-- Mesas se renderizan dinámicamente -->
+        </main>
+        <div id="table-legend" class="table-legend">
+            <span class="legend-item"><span class="legend-dot" style="background:#22c55e"></span>Libre</span>
+            <span class="legend-item"><span class="legend-dot" style="background:#3b82f6"></span>Ocupada</span>
+            <span class="legend-item"><span class="legend-dot" style="background:#eab308"></span>Esperando</span>
+            <span class="legend-item"><span class="legend-dot" style="background:#f97316"></span>Cuenta</span>
+            <span class="legend-item"><span class="legend-dot" style="background:#8b5cf6"></span>Reservada</span>
+        </div>
+    </section>
+
+    <!-- =============================== -->
+    <!-- SCREEN 3: TOMA DE PEDIDO        -->
+    <!-- =============================== -->
+    <section id="screen-order" class="screen">
+        <header class="pos-header">
+            <div class="pos-header-left">
+                <button id="btn-back-tables" class="btn-back">← Mesas</button>
+                <h2 id="order-table-name" class="pos-title">Mesa 1</h2>
+            </div>
+            <div class="pos-header-right">
+                <span id="order-status-badge" class="order-status-badge">Nuevo</span>
+            </div>
+        </header>
+
+        <div class="order-layout">
+            <!-- Columna izquierda: Menú -->
+            <div class="menu-panel">
+                <!-- Categorías -->
+                <nav id="category-tabs" class="category-tabs">
+                    <!-- Se generan dinámicamente -->
+                </nav>
+                <!-- Productos -->
+                <div id="products-grid" class="products-grid">
+                    <!-- Se generan dinámicamente -->
+                </div>
+            </div>
+
+            <!-- Columna derecha: Carrito / Comanda -->
+            <div class="cart-panel">
+                <div class="cart-header">
+                    <h3 class="cart-title">Comanda</h3>
+                    <span id="cart-count" class="cart-count">0</span>
+                </div>
+                <div id="cart-items" class="cart-items">
+                    <div id="cart-empty" class="cart-empty">
+                        <span>Agrega platos del menú</span>
+                    </div>
+                </div>
+                <div class="cart-footer">
+                    <div class="cart-total-row">
+                        <span>Total</span>
+                        <span id="cart-total" class="cart-total-amount">S/ 0.00</span>
+                    </div>
+                    <button id="btn-send-kitchen" class="btn-send-kitchen" disabled>
+                        🔥 ENVIAR A COCINA
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- =============================== -->
+    <!-- MODAL: Modificadores             -->
+    <!-- =============================== -->
+    <div id="modal-modifiers" class="modal hidden">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-product-name" class="modal-title"></h3>
+                <button id="modal-close" class="modal-close">✕</button>
+            </div>
+            <div id="modal-body" class="modal-body">
+                <!-- Sizes + Modifiers se generan dinámicamente -->
+            </div>
+            <div id="modal-notes-section" class="modal-notes-section">
+                <input type="text" id="modal-notes" class="modal-notes-input" placeholder="Notas: sin cebolla, bien cocido...">
+            </div>
+            <div class="modal-footer">
+                <div class="modal-qty">
+                    <button id="modal-qty-minus" class="qty-btn">−</button>
+                    <span id="modal-qty-value" class="qty-value">1</span>
+                    <button id="modal-qty-plus" class="qty-btn">+</button>
+                </div>
+                <button id="modal-add" class="btn-modal-add">
+                    Agregar · <span id="modal-price">S/ 0.00</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- =============================== -->
+    <!-- TOAST notifications              -->
+    <!-- =============================== -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Config inyectada por Jinja2 -->
+    <script>
+        window.POS_CONFIG = {{ config | tojson }};
+    </script>
+
+    <script src="/static/js/pedido_1.js"></script>
+</body>
+</html>
