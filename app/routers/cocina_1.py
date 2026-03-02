@@ -4,6 +4,7 @@ Inyecta la configuración del restaurante en el template.
 """
 
 from fastapi import APIRouter, Depends, Request
+from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
@@ -23,7 +24,16 @@ async def kds_screen(
     """
     Pantalla KDS para TV de cocina.
     URL: /cocina?restaurant_id=1&station_id=2
+    En celular auto-redirige a /cocina/movil
     """
+    # Auto-detectar celular → redirigir a vista móvil
+    ua = (request.headers.get('user-agent', '') or '').lower()
+    is_mobile = any(k in ua for k in ['mobile', 'android', 'iphone', 'ipod'])
+    if is_mobile:
+        params = f"?restaurant_id={restaurant_id}"
+        if station_id:
+            params += f"&station_id={station_id}"
+        return RedirectResponse(url=f"/cocina/movil{params}", status_code=302)
     # Config que se inyecta al template (el JS la lee)
     # Detectar protocolo (Railway usa HTTPS)
     is_https = request.headers.get('x-forwarded-proto', 'http') == 'https' or \
