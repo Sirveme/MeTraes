@@ -853,7 +853,9 @@ const POS = {
             ...(this.token ? { 'Authorization': `Bearer ${this.token}` } : {}),
             ...(options.headers || {}),
         };
-        return fetch(`${this.config.api_base}${path}`, { ...options, headers });
+        // Usar ruta relativa (sin base) para respetar HTTPS del navegador
+        const url = `${this.config.api_base}${path}`;
+        return fetch(url, { ...options, headers });
     },
 
     _toast(message, type = 'info') {
