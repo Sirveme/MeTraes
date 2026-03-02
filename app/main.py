@@ -18,6 +18,7 @@ app = FastAPI(
     version=settings.APP_VERSION,
     docs_url="/docs",
     redoc_url=None,
+    redirect_slashes=False,  # Evita 307 redirects en Railway HTTPS
 )
 
 # --- CORS ---
