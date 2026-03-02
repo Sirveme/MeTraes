@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="theme-color" content="#0a0a0f">
+    <title>Cocina | Metraes</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700;900&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/cocina_movil.css?v=1">
+</head>
+<body>
+
+<header class="header">
+    <div class="header-left">
+        <span class="logo">🔥 COCINA</span>
+        <span id="ws-status" class="status off">···</span>
+    </div>
+    <div class="header-right">
+        <span id="order-count" class="count">0</span>
+        <button id="btn-sound" class="btn-s">🔊</button>
+    </div>
+</header>
+
+<nav id="stations" class="stations">
+    <button class="st-pill active" data-sid="all">Todas <span class="st-n" id="n-all">0</span></button>
+</nav>
+
+<main id="orders" class="orders">
+    <div id="empty" class="empty">
+        <div class="empty-icon">👨‍🍳</div>
+        <div class="empty-text">Sin pedidos</div>
+        <div class="empty-sub">Aparecerán aquí al instante</div>
+    </div>
+</main>
+
+<div id="alert" class="alert-new hide">
+    <div class="alert-box">
+        <div class="alert-title">🔔 NUEVO PEDIDO</div>
+        <div id="alert-detail" class="alert-detail"></div>
+    </div>
+</div>
+
+<audio id="snd-new" preload="auto"><source src="/static/audio/new_order.wav" type="audio/wav"></audio>
+
+<script>
+    window.KDS_CONFIG = {{ config | tojson }};
+</script>
+<script src="/static/js/cocina_movil.js?v=1"></script>
+</body>
+</html>
