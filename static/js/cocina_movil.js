@@ -1,4 +1,4 @@
-/* cocina_movil.js v2 - KDS Movil */
+/* cocina_movil.js v3 - Accordion KDS */
 var CFG = window.KDS_CONFIG;
 var KC = CFG.kitchen;
 
@@ -11,6 +11,7 @@ var APP = {
     _hb: null,
     _reconnectAttempts: 0,
     _audioCtx: null,
+    _openCardId: null,
 
     init: function() {
         this._setupSound();
@@ -21,7 +22,6 @@ var APP = {
         }, 5000);
     },
 
-    // ====== AUDIO (Web Audio API, no .wav) ======
     _beep: function(freq, times, dur) {
         try {
             if (!this._audioCtx) this._audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -29,14 +29,10 @@ var APP = {
             for (var i = 0; i < times; i++) {
                 var osc = ctx.createOscillator();
                 var gain = ctx.createGain();
-                osc.connect(gain);
-                gain.connect(ctx.destination);
-                osc.frequency.value = freq;
-                osc.type = "square";
-                gain.gain.value = 0.3;
+                osc.connect(gain); gain.connect(ctx.destination);
+                osc.frequency.value = freq; osc.type = "square"; gain.gain.value = 0.3;
                 var start = ctx.currentTime + i * (dur + 0.1);
-                osc.start(start);
-                osc.stop(start + dur);
+                osc.start(start); osc.stop(start + dur);
             }
         } catch(e) {}
     },
@@ -46,48 +42,35 @@ var APP = {
         var token = localStorage.getItem("access_token") || "";
         var url = CFG.ws_base + "/" + CFG.restaurant_id + "?token=" + token;
         if (CFG.station_id) url += "&station_id=" + CFG.station_id;
-
         this._setStatus(false);
         try { this.ws = new WebSocket(url); } catch(e) { this._reconnect(); return; }
-
         var self = this;
         this.ws.onopen = function() {
-            self._setStatus(true);
-            self._reconnectAttempts = 0;
+            self._setStatus(true); self._reconnectAttempts = 0;
             self._hb = setInterval(function() { try { self.ws.send("ping"); } catch(e){} }, 30000);
         };
-        this.ws.onclose = function() {
-            self._setStatus(false);
-            clearInterval(self._hb);
-            self._reconnect();
-        };
+        this.ws.onclose = function() { self._setStatus(false); clearInterval(self._hb); self._reconnect(); };
         this.ws.onerror = function() {};
         this.ws.onmessage = function(e) {
             if (e.data === "pong") return;
             try { self._onMsg(JSON.parse(e.data)); } catch(ex) {}
         };
     },
-
     _reconnect: function() {
         this._reconnectAttempts++;
         var delay = Math.min(3000 * this._reconnectAttempts, 30000);
         setTimeout(function() { if (!APP.ws || APP.ws.readyState !== WebSocket.OPEN) APP._wsConnect(); }, delay);
     },
-
     _setStatus: function(on) {
         var el = document.getElementById("ws-status");
         el.className = on ? "status on" : "status off";
         el.textContent = on ? "\u2705" : "\u274c";
     },
-
     _onMsg: function(msg) {
         var d = msg.data;
         if (msg.event === "initial_state") {
-            this.orders = d.orders || [];
-            this.stations = d.stations || [];
-            this._renderStations();
-            this.render();
-            return;
+            this.orders = d.orders || []; this.stations = d.stations || [];
+            this._renderStations(); this.render(); return;
         }
         if (d && d.orders) {
             var prev = this.orders.length;
@@ -97,23 +80,19 @@ var APP = {
         }
     },
 
-    // ====== RENDER ======
+    // ====== RENDER (ACCORDION) ======
     render: function() {
         var container = document.getElementById("orders");
         var empty = document.getElementById("empty");
         var filtered = this.orders.slice();
-
         if (this.activeStation !== "all") {
             var sid = parseInt(this.activeStation);
             filtered = this.orders.filter(function(o) {
                 return o.items && o.items.some(function(i) { return i.station_id === sid; });
             });
         }
-
         filtered.sort(function(a, b) { return (b.kitchen_wait_minutes || 0) - (a.kitchen_wait_minutes || 0); });
-
         container.querySelectorAll(".card").forEach(function(c) { c.remove(); });
-
         if (filtered.length === 0) {
             empty.style.display = "flex";
         } else {
@@ -122,10 +101,8 @@ var APP = {
                 container.appendChild(this._mkCard(filtered[i]));
             }
         }
-
         document.getElementById("order-count").textContent = this.orders.length;
         document.getElementById("n-all").textContent = this.orders.length;
-
         var self = this;
         this.stations.forEach(function(s) {
             var el = document.getElementById("n-s" + s.id);
@@ -133,26 +110,25 @@ var APP = {
                 return o.items && o.items.some(function(i) { return i.station_id === s.id; });
             }).length;
         });
-
         this._updateStationPills();
     },
 
     _mkCard: function(o) {
         var card = document.createElement("div");
         card.className = "card";
+        if (this._openCardId === o.id) card.classList.add("open");
         card.dataset.s = o.status || "sent";
         card.dataset.oid = o.id;
         var wm = Math.round(o.kitchen_wait_minutes || 0);
         if (wm >= KC.alert_time_minutes) card.classList.add("late");
-
         var timerCls = "ok";
         if (wm >= KC.alert_time_minutes) timerCls = "late";
         else if (wm >= KC.warning_time_minutes) timerCls = "warn";
         var timerTxt = wm < 60 ? wm + "m" : Math.floor(wm / 60) + "h" + (wm % 60) + "m";
 
         var typeBadge = "";
-        if (o.order_type === "delivery") typeBadge = "<span class=\"badge-type dlv\">\ud83d\udef5 DLV</span> ";
-        else if (o.order_type === "takeaway") typeBadge = "<span class=\"badge-type tkw\">\ud83d\udce6 P/LL</span> ";
+        if (o.order_type === "delivery") typeBadge = " <span class=\"badge-type dlv\">\ud83d\udef5 DLV</span>";
+        else if (o.order_type === "takeaway") typeBadge = " <span class=\"badge-type tkw\">\ud83d\udce6 P/LL</span>";
 
         var items = o.items || [];
         if (this.activeStation !== "all") {
@@ -160,6 +136,16 @@ var APP = {
             items = items.filter(function(i) { return i.station_id === sid2; });
         }
 
+        // Summary for collapsed view
+        var names = [];
+        for (var k = 0; k < Math.min(items.length, 3); k++) {
+            var q = parseFloat(items[k].quantity);
+            names.push((q > 1 ? q + "x " : "") + (items[k].product_name || ""));
+        }
+        var summary = names.join(", ");
+        if (items.length > 3) summary += " +" + (items.length - 3) + " m\u00e1s";
+
+        // Items HTML (for expanded)
         var itemsHtml = "";
         var self = this;
         items.forEach(function(it) {
@@ -174,11 +160,12 @@ var APP = {
                 mods + notes + "</div></div>";
         });
 
+        // Action buttons
         var allSent = items.length > 0 && items.every(function(i) { return i.status === "sent"; });
         var allPrep = items.length > 0 && items.every(function(i) { return i.status === "preparing"; });
         var actHtml = "";
         if (allSent) {
-            actHtml = "<div class=\"card-actions\"><button class=\"act-btn act-prep\" data-oid=\"" + o.id + "\" data-act=\"preparing\">\u25b6 PREPARAR</button></div>";
+            actHtml = "<div class=\"card-actions\"><button class=\"act-btn act-prep\" data-oid=\"" + o.id + "\" data-act=\"preparing\">\u25b6 PREPARAR TODO</button></div>";
         } else if (allPrep) {
             actHtml = "<div class=\"card-actions\"><button class=\"act-btn act-done\" data-oid=\"" + o.id + "\" data-act=\"ready\">\u2705 TODO LISTO</button></div>";
         } else {
@@ -188,21 +175,50 @@ var APP = {
         }
 
         var numStr = String(o.order_number || 0).padStart(3, "0");
-        card.innerHTML = "<div class=\"card-top\">" +
-            "<span class=\"card-num\">#" + numStr + "</span>" +
-            typeBadge +
-            "<span class=\"card-table\">" + self._esc(o.table_display || "") + "</span>" +
-            "<span class=\"card-timer " + timerCls + "\">" + timerTxt + "</span></div>" +
-            "<div class=\"card-items\">" + itemsHtml + "</div>" + actHtml;
+        card.innerHTML =
+            "<div class=\"card-head\">" +
+                "<span class=\"card-num\">#" + numStr + "</span>" +
+                "<div class=\"card-mid\">" +
+                    "<div class=\"card-table\">" + self._esc(o.table_display || "") + typeBadge + "</div>" +
+                    "<div class=\"card-summary\">" + self._esc(summary) + "</div>" +
+                "</div>" +
+                "<div class=\"card-right\">" +
+                    "<span class=\"card-timer " + timerCls + "\">" + timerTxt + "</span>" +
+                    "<span class=\"card-count\">" + items.length + "</span>" +
+                    "<span class=\"card-arrow\">\u25bc</span>" +
+                "</div>" +
+            "</div>" +
+            "<div class=\"card-body\">" +
+                "<div class=\"card-items\">" + itemsHtml + "</div>" +
+                actHtml +
+            "</div>";
 
+        // Tap header to toggle
+        var head = card.querySelector(".card-head");
+        head.addEventListener("click", function(e) {
+            if (e.target.closest("[data-act]")) return;
+            var isOpen = card.classList.contains("open");
+            // Close all others
+            document.querySelectorAll(".card.open").forEach(function(c) { c.classList.remove("open"); });
+            if (!isOpen) {
+                card.classList.add("open");
+                APP._openCardId = o.id;
+                // Scroll into view
+                setTimeout(function() { card.scrollIntoView({behavior: "smooth", block: "nearest"}); }, 50);
+            } else {
+                APP._openCardId = null;
+            }
+        });
+
+        // Action buttons
         card.addEventListener("click", function(e) {
             var btn = e.target.closest("[data-act]");
             if (!btn) return;
+            e.stopPropagation();
             var act = btn.dataset.act;
             var oid = parseInt(btn.dataset.oid);
             var order = APP.orders.find(function(x) { return x.id === oid; });
             if (!order) return;
-
             var its = order.items || [];
             if (APP.activeStation !== "all") {
                 var sid3 = parseInt(APP.activeStation);
@@ -214,8 +230,7 @@ var APP = {
                 return false;
             });
             toUpdate.forEach(function(i) { APP._updateItem(i.id, act); });
-            btn.style.opacity = "0.5";
-            btn.textContent = "\u23f3";
+            btn.style.opacity = "0.5"; btn.textContent = "\u23f3";
             setTimeout(function() { btn.style.opacity = "1"; }, 1000);
         });
 
@@ -231,61 +246,41 @@ var APP = {
             body: JSON.stringify({ status: status }),
         }).catch(function(e) { console.error("[KDS]", e); });
     },
-
     _loadREST: function() {
         var token = localStorage.getItem("access_token") || "";
         fetch(CFG.api_base + "/kitchen/pending", { headers: { "Authorization": "Bearer " + token } })
             .then(function(r) { if (r.ok) return r.json(); })
-            .then(function(d) { if (d) { APP.orders = d; APP.render(); } })
-            .catch(function(){});
+            .then(function(d) { if (d) { APP.orders = d; APP.render(); } }).catch(function(){});
         fetch(CFG.api_base + "/kitchen/stations", { headers: { "Authorization": "Bearer " + token } })
             .then(function(r) { if (r.ok) return r.json(); })
-            .then(function(d) { if (d) { APP.stations = d; APP._renderStations(); } })
-            .catch(function(){});
+            .then(function(d) { if (d) { APP.stations = d; APP._renderStations(); } }).catch(function(){});
     },
 
     // ====== STATIONS ======
     _setupStationAll: function() {
-        var allBtn = document.querySelector("[data-sid=\"all\"]");
-        if (allBtn) {
-            allBtn.addEventListener("click", function() { APP._selectStation("all"); });
-        }
+        var btn = document.querySelector("[data-sid=\"all\"]");
+        if (btn) btn.addEventListener("click", function() { APP._selectStation("all"); });
     },
-
     _renderStations: function() {
         var nav = document.getElementById("stations");
         nav.querySelectorAll("[data-sid]:not([data-sid=\"all\"])").forEach(function(b) { b.remove(); });
         this.stations.forEach(function(s) {
             var btn = document.createElement("button");
-            btn.className = "st-pill";
-            btn.dataset.sid = s.id;
+            btn.className = "st-pill"; btn.dataset.sid = s.id;
             btn.innerHTML = (s.icon || "") + " " + (s.short_name || s.name) + " <span class=\"st-n\" id=\"n-s" + s.id + "\">0</span>";
             btn.addEventListener("click", function() { APP._selectStation(s.id); });
             nav.appendChild(btn);
         });
     },
-
     _selectStation: function(sid) {
-        if (sid === "all") {
-            this.activeStation = "all";
-        } else {
-            this.activeStation = (this.activeStation === sid) ? "all" : sid;
-        }
-        this._updateStationPills();
-        this.render();
+        this.activeStation = (sid === "all") ? "all" : ((this.activeStation === sid) ? "all" : sid);
+        this._openCardId = null;
+        this._updateStationPills(); this.render();
     },
-
     _updateStationPills: function() {
         var as = this.activeStation;
         document.querySelectorAll(".st-pill").forEach(function(p) {
-            var psid = p.dataset.sid;
-            var isActive = false;
-            if (as === "all") {
-                isActive = (psid === "all");
-            } else {
-                isActive = (String(psid) === String(as));
-            }
-            p.classList.toggle("active", isActive);
+            p.classList.toggle("active", as === "all" ? p.dataset.sid === "all" : String(p.dataset.sid) === String(as));
         });
     },
 
@@ -293,14 +288,12 @@ var APP = {
     _alertNew: function(data) {
         if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 300]);
         if (this.soundOn) this._beep(880, 3, 0.2);
-
         var el = document.getElementById("alert");
         var det = document.getElementById("alert-detail");
         det.textContent = data.order_number ? "#" + String(data.order_number).padStart(3, "0") : "";
         el.classList.remove("hide");
         setTimeout(function() { el.classList.add("hide"); }, 2000);
     },
-
     _setupSound: function() {
         var self = this;
         document.getElementById("btn-sound").addEventListener("click", function() {
@@ -309,13 +302,7 @@ var APP = {
             if (self.soundOn) self._beep(440, 1, 0.1);
         });
     },
-
-    _esc: function(s) {
-        if (!s) return "";
-        var d = document.createElement("div");
-        d.textContent = s;
-        return d.innerHTML;
-    },
+    _esc: function(s) { if (!s) return ""; var d = document.createElement("div"); d.textContent = s; return d.innerHTML; },
 };
 
 document.addEventListener("DOMContentLoaded", function() { APP.init(); });
