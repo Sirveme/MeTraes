@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#1c1917">
+    <title>Carta | Metraes</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/carta_virtual.css?v=1">
+</head>
+<body>
+
+<!-- Header -->
+<header id="header" class="header">
+    <div class="header-top">
+        <div class="header-info">
+            <h1 id="rest-name" class="rest-name"></h1>
+            <span id="table-badge" class="table-badge"></span>
+        </div>
+    </div>
+    <!-- Category tabs -->
+    <nav id="cat-tabs" class="cat-tabs"></nav>
+</header>
+
+<!-- Products grid -->
+<main id="products" class="products"></main>
+
+<!-- Empty state -->
+<div id="empty" class="empty hide">
+    <span class="empty-icon">🍽️</span>
+    <span class="empty-text">No hay productos disponibles</span>
+</div>
+
+<!-- Floating cart button -->
+<button id="cart-btn" class="cart-btn hide" onclick="CARTA.toggleCart()">
+    <span class="cart-icon">🛒</span>
+    <span id="cart-count" class="cart-count">0</span>
+    <span id="cart-total" class="cart-total">S/ 0.00</span>
+</button>
+
+<!-- Cart drawer (slides up from bottom) -->
+<div id="cart-overlay" class="cart-overlay hide" onclick="CARTA.toggleCart()"></div>
+<div id="cart-drawer" class="cart-drawer">
+    <div class="cart-header">
+        <h2>Tu pedido</h2>
+        <button class="cart-close" onclick="CARTA.toggleCart()">&times;</button>
+    </div>
+    <div id="cart-items" class="cart-items"></div>
+    <div class="cart-footer">
+        <div class="cart-totals">
+            <div class="cart-row"><span>Subtotal</span><span id="cart-subtotal">S/ 0.00</span></div>
+            <div class="cart-row total"><span>Total</span><span id="cart-total-final">S/ 0.00</span></div>
+        </div>
+        <div id="cart-notes-wrap" class="cart-notes-wrap">
+            <input id="cart-notes" class="cart-notes" type="text" placeholder="Notas para el mesero (opcional)" maxlength="200">
+        </div>
+        <button id="btn-send" class="btn-send" onclick="CARTA.sendOrder()">
+            Enviar pedido
+        </button>
+    </div>
+</div>
+
+<!-- Product detail modal -->
+<div id="modal-overlay" class="modal-overlay hide" onclick="CARTA.closeModal()"></div>
+<div id="modal" class="modal hide">
+    <div class="modal-header">
+        <button class="modal-close" onclick="CARTA.closeModal()">&times;</button>
+    </div>
+    <div id="modal-body" class="modal-body"></div>
+    <div class="modal-footer">
+        <div class="qty-control">
+            <button class="qty-btn" onclick="CARTA.modalQty(-1)">−</button>
+            <span id="modal-qty" class="qty-val">1</span>
+            <button class="qty-btn" onclick="CARTA.modalQty(1)">+</button>
+        </div>
+        <button id="btn-add" class="btn-add" onclick="CARTA.addToCart()">
+            Agregar <span id="modal-price-total"></span>
+        </button>
+    </div>
+</div>
+
+<!-- Success overlay -->
+<div id="success" class="success-overlay hide">
+    <div class="success-box">
+        <div class="success-icon">✅</div>
+        <div class="success-title">Pedido enviado</div>
+        <div id="success-detail" class="success-detail"></div>
+    </div>
+</div>
+
+<script>
+    window.CARTA_CONFIG = {{ config | tojson }};
+</script>
+<script src="/static/js/carta_virtual.js?v=1"></script>
+</body>
+</html>
