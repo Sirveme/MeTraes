@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MeTraes.com — POS para Restaurantes</title>
+    <meta name="description" content="Sistema POS completo para restaurantes. Carta Virtual con QR, cocina en tiempo real, facturación electrónica ilimitada. Desde S/45/mes.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,700;1,400&display=swap" rel="stylesheet">
+<style>
+/* ============================================
+   MeTraes.com Landing Page
+   Aesthetic: Warm gastronomy meets clean tech
+   Palette: Charcoal + Amber/Gold accent
+   ============================================ */
+:root {
+    --bg: #fffbf5;
+    --bg2: #fff8ee;
+    --bg-dark: #1a1410;
+    --bg-dark2: #231c14;
+    --text: #1a1410;
+    --text2: #6b5e4f;
+    --text3: #a89880;
+    --text-light: #f5ede0;
+    --accent: #e67e22;
+    --accent2: #d35400;
+    --accent-glow: rgba(230,126,34,0.15);
+    --green: #27ae60;
+    --red: #e74c3c;
+    --blue: #2980b9;
+    --gold: #f1c40f;
+    --border: #e8dfd2;
+    --border-dark: #3a3025;
+    --shadow: 0 2px 8px rgba(26,20,16,0.06);
+    --shadow-lg: 0 8px 32px rgba(26,20,16,0.1);
+    --font: "Outfit", system-ui, sans-serif;
+    --serif: "Playfair Display", Georgia, serif;
+    --radius: 16px;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; font-size:16px; }
+body { background:var(--bg); color:var(--text); font-family:var(--font); overflow-x:hidden; }
+
+/* ===== UTILITY ===== */
+.container { max-width:1100px; margin:0 auto; padding:0 24px; }
+.hide-m { display:block; }
+@media(max-width:768px) { .hide-m { display:none; } }
+
+/* ===== NAV ===== */
+.nav {
+    position:fixed; top:0; left:0; right:0; z-index:50;
+    background:rgba(255,251,245,0.85); backdrop-filter:blur(12px);
+    border-bottom:1px solid var(--border);
+    transition:background 0.3s;
+}
+.nav-inner {
+    max-width:1100px; margin:0 auto; padding:0 24px;
+    display:flex; align-items:center; justify-content:space-between;
+    height:60px;
+}
+.nav-logo {
+    font-weight:900; font-size:22px; color:var(--text);
+    text-decoration:none; letter-spacing:-0.5px;
+}
+.nav-logo span { color:var(--accent); }
+.nav-links { display:flex; gap:28px; align-items:center; }
+.nav-links a {
+    font-size:14px; font-weight:600; color:var(--text2);
+    text-decoration:none; transition:color 0.2s;
+}
+.nav-links a:hover { color:var(--accent); }
+.nav-cta {
+    padding:8px 20px; border-radius:10px;
+    background:var(--accent); color:#fff !important;
+    font-weight:700; font-size:13px;
+}
+.nav-cta:hover { background:var(--accent2); }
+@media(max-width:768px) {
+    .nav-links { gap:12px; }
+    .nav-links a:not(.nav-cta) { display:none; }
+}
+
+/* ===== HERO ===== */
+.hero {
+    padding:100px 0 60px; position:relative;
+    background:linear-gradient(170deg, var(--bg) 0%, var(--bg2) 100%);
+    overflow:hidden;
+}
+.hero-grid {
+    display:grid; grid-template-columns:1fr 1fr;
+    gap:40px; align-items:center;
+}
+@media(max-width:768px) {
+    .hero-grid { grid-template-columns:1fr; text-align:center; }
+    .hero { padding:90px 0 40px; }
+}
+.hero-tag {
+    display:inline-block; padding:6px 16px; border-radius:20px;
+    background:var(--accent-glow); color:var(--accent);
+    font-size:12px; font-weight:700; text-transform:uppercase;
+    letter-spacing:1px; margin-bottom:16px;
+}
+.hero h1 {
+    font-family:var(--serif); font-size:clamp(32px,5vw,52px);
+    font-weight:700; line-height:1.1; margin-bottom:16px;
+    color:var(--text);
+}
+.hero h1 em { color:var(--accent); font-style:italic; }
+.hero-sub {
+    font-size:17px; color:var(--text2); line-height:1.6;
+    margin-bottom:28px; max-width:480px;
+}
+@media(max-width:768px) { .hero-sub { margin:0 auto 28px; } }
+.hero-actions { display:flex; gap:12px; flex-wrap:wrap; }
+@media(max-width:768px) { .hero-actions { justify-content:center; } }
+.btn {
+    padding:14px 28px; border:none; border-radius:12px;
+    font-family:var(--font); font-size:15px; font-weight:700;
+    cursor:pointer; text-decoration:none; display:inline-flex;
+    align-items:center; gap:8px; transition:all 0.2s;
+}
+.btn-primary { background:var(--accent); color:#fff; box-shadow:0 4px 16px rgba(230,126,34,0.3); }
+.btn-primary:hover { background:var(--accent2); transform:translateY(-1px); }
+.btn-outline { background:transparent; color:var(--text); border:2px solid var(--border); }
+.btn-outline:hover { border-color:var(--accent); color:var(--accent); }
+.hero-stat {
+    display:flex; gap:32px; margin-top:32px;
+}
+@media(max-width:768px) { .hero-stat { justify-content:center; } }
+.stat { text-align:center; }
+.stat-val { font-size:28px; font-weight:900; color:var(--accent); }
+.stat-lbl { font-size:11px; color:var(--text3); font-weight:600; text-transform:uppercase; letter-spacing:0.5px; }
+
+/* ===== DEVICE MOCKUPS ===== */
+.devices {
+    position:relative; width:100%; max-width:520px;
+    height:400px; margin:0 auto;
+}
+@media(max-width:768px) { .devices { height:300px; max-width:360px; } }
+
+/* Phone mockup */
+.phone {
+    position:absolute; width:180px; height:360px;
+    background:var(--bg-dark); border-radius:28px;
+    border:3px solid #333; box-shadow:var(--shadow-lg);
+    overflow:hidden; z-index:3;
+    bottom:0; right:0;
+    animation:float-phone 4s ease-in-out infinite;
+}
+@media(max-width:768px) { .phone { width:140px; height:280px; border-radius:22px; } }
+@keyframes float-phone { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-8px); } }
+.phone-notch {
+    width:60px; height:6px; background:#333; border-radius:0 0 8px 8px;
+    margin:0 auto;
+}
+.phone-screen {
+    margin:4px 6px; border-radius:20px; overflow:hidden;
+    height:calc(100% - 16px); position:relative;
+}
+
+/* Tablet mockup */
+.tablet {
+    position:absolute; width:280px; height:200px;
+    background:var(--bg-dark); border-radius:16px;
+    border:3px solid #333; box-shadow:var(--shadow-lg);
+    overflow:hidden; z-index:2;
+    top:20px; left:0;
+    animation:float-tablet 5s ease-in-out infinite;
+}
+@media(max-width:768px) { .tablet { width:220px; height:160px; top:10px; } }
+@keyframes float-tablet { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-6px); } }
+.tablet-screen {
+    margin:6px; border-radius:10px; overflow:hidden;
+    height:calc(100% - 12px); position:relative;
+}
+
+/* TV mockup */
+.tv {
+    position:absolute; width:320px; height:190px;
+    background:#111; border-radius:8px;
+    border:4px solid #222; box-shadow:var(--shadow-lg);
+    overflow:hidden; z-index:1;
+    top:0; left:60px;
+    animation:float-tv 6s ease-in-out infinite;
+}
+@media(max-width:768px) { .tv { width:240px; height:145px; left:30px; } }
+.tv-stand {
+    position:absolute; bottom:-12px; left:50%; transform:translateX(-50%);
+    width:60px; height:12px; background:#222; border-radius:0 0 6px 6px;
+}
+@keyframes float-tv { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-4px); } }
+.tv-screen {
+    margin:4px; border-radius:4px; overflow:hidden;
+    height:calc(100% - 8px); position:relative;
+}
+
+/* Screen content (animated) */
+.screen-content {
+    width:100%; height:100%; position:relative;
+}
+/* Phone: Carta Virtual */
+.sc-carta {
+    background:linear-gradient(180deg, #1c1917 0%, #292524 30%, #fafaf9 30%);
+    padding:0;
+}
+.sc-carta-head { padding:8px 10px 4px; }
+.sc-carta-head h3 { color:#fff; font-size:9px; font-weight:700; }
+.sc-carta-tabs {
+    display:flex; gap:3px; padding:4px 10px 6px;
+}
+.sc-carta-tab {
+    padding:2px 8px; border-radius:10px; font-size:7px; font-weight:600;
+    color:rgba(255,255,255,0.5);
+}
+.sc-carta-tab.a { background:#fff; color:#1c1917; }
+.sc-carta-grid {
+    display:grid; grid-template-columns:1fr 1fr; gap:6px;
+    padding:6px 8px; background:#fafaf9;
+}
+.sc-plate {
+    background:#fff; border-radius:8px; overflow:hidden;
+    box-shadow:0 1px 3px rgba(0,0,0,0.05);
+}
+.sc-plate-img {
+    height:36px; display:flex; align-items:center; justify-content:center;
+    font-size:20px;
+}
+.sc-plate-img.c1 { background:linear-gradient(135deg, #fef3c7, #fde68a); }
+.sc-plate-img.c2 { background:linear-gradient(135deg, #fee2e2, #fecaca); }
+.sc-plate-img.c3 { background:linear-gradient(135deg, #d1fae5, #a7f3d0); }
+.sc-plate-img.c4 { background:linear-gradient(135deg, #dbeafe, #bfdbfe); }
+.sc-plate-name { font-size:6px; font-weight:600; padding:3px 5px; white-space:nowrap; overflow:hidden; }
+.sc-plate-price { font-size:7px; font-weight:800; color:var(--accent); padding:0 5px 4px; }
+
+/* Animated cart button */
+.sc-cart {
+    position:absolute; bottom:6px; left:8px; right:8px;
+    background:var(--red); color:#fff; border-radius:8px;
+    padding:5px 8px; font-size:7px; font-weight:700;
+    display:flex; justify-content:space-between;
+    animation:pulse-cart 2s ease-in-out infinite;
+}
+@keyframes pulse-cart { 0%,100% { transform:scale(1); } 50% { transform:scale(1.03); } }
+
+/* Tablet: POS Mesero */
+.sc-pos { background:#0a0a14; padding:6px; display:flex; gap:4px; }
+.sc-pos-left { flex:1; }
+.sc-pos-cats { display:flex; gap:3px; margin-bottom:4px; flex-wrap:wrap; }
+.sc-pos-cat {
+    padding:2px 6px; border-radius:4px; font-size:6px; font-weight:700;
+    color:rgba(255,255,255,0.5); background:rgba(255,255,255,0.08);
+}
+.sc-pos-cat.a { background:var(--accent); color:#fff; }
+.sc-pos-prods { display:grid; grid-template-columns:repeat(3,1fr); gap:3px; }
+.sc-pos-prod {
+    background:rgba(255,255,255,0.06); border-radius:4px; padding:4px;
+    text-align:center;
+}
+.sc-pos-prod-icon { font-size:14px; }
+.sc-pos-prod-name { font-size:5px; color:rgba(255,255,255,0.6); margin-top:1px; }
+.sc-pos-prod-price { font-size:6px; color:var(--accent); font-weight:800; }
+.sc-pos-right {
+    width:70px; background:rgba(255,255,255,0.04); border-radius:6px;
+    padding:4px; display:flex; flex-direction:column; justify-content:space-between;
+}
+.sc-pos-item { font-size:5px; color:rgba(255,255,255,0.7); padding:2px 0; border-bottom:1px solid rgba(255,255,255,0.06); }
+.sc-pos-total { font-size:7px; font-weight:800; color:var(--green); text-align:right; }
+.sc-pos-send {
+    background:var(--green); color:#fff; border-radius:4px;
+    padding:3px; text-align:center; font-size:6px; font-weight:700;
+    animation:pulse-send 3s ease-in-out infinite;
+}
+@keyframes pulse-send { 0%,100% { opacity:1; } 50% { opacity:0.7; } }
+
+/* TV: KDS Cocina */
+.sc-kds { background:#0a0a14; padding:4px; }
+.sc-kds-head {
+    display:flex; justify-content:space-between; align-items:center;
+    padding:2px 4px 4px; margin-bottom:3px;
+}
+.sc-kds-title { font-size:7px; font-weight:800; color:#facc15; }
+.sc-kds-pills { display:flex; gap:2px; }
+.sc-kds-pill { font-size:5px; padding:1px 5px; border-radius:3px; color:rgba(255,255,255,0.4); background:rgba(255,255,255,0.06); }
+.sc-kds-pill.a { background:#3b82f6; color:#fff; }
+.sc-kds-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:3px; }
+.sc-kds-card {
+    background:rgba(255,255,255,0.06); border-radius:4px;
+    padding:4px; border-left:3px solid #facc15;
+    animation:slide-in 0.5s ease both;
+}
+.sc-kds-card:nth-child(2) { border-color:#f97316; animation-delay:0.15s; }
+.sc-kds-card:nth-child(3) { border-color:#ef4444; animation-delay:0.3s; }
+.sc-kds-card:nth-child(4) { border-color:#22c55e; animation-delay:0.45s; }
+@keyframes slide-in { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+.sc-kds-num { font-size:9px; font-weight:900; color:#fff; }
+.sc-kds-table { font-size:5px; color:#06b6d4; }
+.sc-kds-items { margin-top:2px; }
+.sc-kds-item { font-size:5px; color:rgba(255,255,255,0.5); padding:1px 0; }
+.sc-kds-item-dot {
+    display:inline-block; width:4px; height:4px; border-radius:50%;
+    background:#facc15; margin-right:2px; vertical-align:middle;
+}
+.sc-kds-timer { font-size:6px; color:rgba(255,255,255,0.3); margin-top:3px; font-family:monospace; }
+
+/* New order flash animation on KDS */
+.sc-kds-card:first-child { animation:slide-in 0.5s ease both, glow-new 2s ease-in-out infinite; }
+@keyframes glow-new { 0%,100% { box-shadow:none; } 50% { box-shadow:0 0 8px rgba(250,204,21,0.3); } }
+
+/* ===== BENEFITS ===== */
+.benefits {
+    padding:80px 0;
+    background:var(--bg-dark); color:var(--text-light);
+}
+.section-tag {
+    display:inline-block; padding:4px 14px; border-radius:20px;
+    font-size:11px; font-weight:700; text-transform:uppercase;
+    letter-spacing:1.5px; margin-bottom:12px;
+}
+.section-tag.dark { background:rgba(255,255,255,0.08); color:var(--accent); }
+.section-tag.light { background:var(--accent-glow); color:var(--accent); }
+.section-title {
+    font-family:var(--serif); font-size:clamp(26px,4vw,40px);
+    font-weight:700; margin-bottom:12px; line-height:1.15;
+}
+.section-sub { font-size:16px; color:var(--text3); max-width:560px; line-height:1.6; margin-bottom:40px; }
+
+.ben-grid {
+    display:grid; grid-template-columns:repeat(3,1fr); gap:20px;
+}
+@media(max-width:768px) { .ben-grid { grid-template-columns:1fr; } }
+.ben-card {
+    background:var(--bg-dark2); border:1px solid var(--border-dark);
+    border-radius:var(--radius); padding:28px 24px;
+    transition:transform 0.2s, border-color 0.2s;
+}
+.ben-card:hover { transform:translateY(-4px); border-color:var(--accent); }
+.ben-icon {
+    width:48px; height:48px; border-radius:12px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:24px; margin-bottom:16px;
+}
+.ben-card h3 { font-size:17px; font-weight:700; margin-bottom:8px; color:#fff; }
+.ben-card p { font-size:14px; color:var(--text3); line-height:1.6; }
+
+/* ===== HOW IT WORKS ===== */
+.how { padding:80px 0; }
+.how-steps {
+    display:grid; grid-template-columns:repeat(4,1fr); gap:0;
+    position:relative;
+}
+@media(max-width:768px) { .how-steps { grid-template-columns:1fr; gap:16px; } }
+.how-step { text-align:center; padding:0 16px; position:relative; }
+.how-step::after {
+    content:""; position:absolute; top:28px; right:-10px;
+    width:20px; height:2px; background:var(--border);
+}
+.how-step:last-child::after { display:none; }
+@media(max-width:768px) { .how-step::after { display:none; } }
+.how-num {
+    width:56px; height:56px; border-radius:50%;
+    background:var(--accent-glow); color:var(--accent);
+    font-size:22px; font-weight:900;
+    display:flex; align-items:center; justify-content:center;
+    margin:0 auto 16px;
+}
+.how-step h3 { font-size:15px; font-weight:700; margin-bottom:6px; }
+.how-step p { font-size:13px; color:var(--text2); line-height:1.5; }
+
+/* ===== PLAN TABLE ===== */
+.plans { padding:80px 0; background:var(--bg2); }
+.plan-table-wrap {
+    overflow-x:auto; border-radius:var(--radius);
+    border:1px solid var(--border); background:var(--bg);
+    box-shadow:var(--shadow);
+    -webkit-overflow-scrolling:touch;
+}
+.plan-table {
+    width:100%; border-collapse:collapse;
+    min-width:640px;
+}
+.plan-table th, .plan-table td {
+    padding:14px 16px; text-align:center;
+    border-bottom:1px solid var(--border);
+}
+.pt-feature-head {
+    text-align:left !important; font-size:13px; font-weight:700;
+    color:var(--text2); width:30%;
+    background:var(--bg2);
+}
+.pt-head {
+    width:23.3%; padding:24px 12px !important;
+    background:var(--bg2); position:relative;
+}
+.pt-head.pt-featured {
+    background:var(--accent-glow);
+    box-shadow:inset 0 3px 0 var(--accent);
+}
+.pt-badge {
+    position:absolute; top:8px; right:8px;
+    background:var(--accent); color:#fff;
+    font-size:9px; font-weight:800; padding:2px 8px;
+    border-radius:4px; text-transform:uppercase;
+}
+.pt-icon { font-size:28px; margin-bottom:4px; }
+.pt-name {
+    font-size:11px; font-weight:800; text-transform:uppercase;
+    letter-spacing:2px; color:var(--text2); margin-bottom:2px;
+}
+.pt-price {
+    font-size:32px; font-weight:900; color:var(--accent); line-height:1;
+}
+.pt-price sup { font-size:16px; font-weight:700; vertical-align:super; }
+.pt-price span { font-size:12px; font-weight:500; color:var(--text3); }
+
+.pt-feat {
+    text-align:left !important; font-size:14px; font-weight:500;
+    color:var(--text); background:var(--bg);
+}
+.pt-val { font-size:14px; color:var(--text); }
+.pt-val strong { font-weight:800; }
+.pt-feat-col { background:rgba(230,126,34,0.04); }
+.pt-yes { color:var(--green); font-weight:700; }
+.pt-no { color:var(--text3); }
+.pt-detail { font-size:11px; color:var(--text3); font-weight:400; }
+
+.plan-table tfoot td { border-bottom:none; padding:20px 16px; }
+.plan-btn {
+    padding:12px 24px; border:none; border-radius:10px;
+    font-family:var(--font); font-size:14px; font-weight:700;
+    cursor:pointer; transition:all 0.2s; display:inline-block;
+}
+.plan-btn.primary { background:var(--accent); color:#fff; }
+.plan-btn.primary:hover { background:var(--accent2); }
+.plan-btn.outline { background:transparent; color:var(--text); border:2px solid var(--border); }
+.plan-btn.outline:hover { border-color:var(--accent); color:var(--accent); }
+
+/* Mobile: sticky first column */
+@media(max-width:768px) {
+    .plan-table { min-width:580px; }
+    .plan-table th:first-child, .plan-table td:first-child {
+        position:sticky; left:0; z-index:2;
+        background:var(--bg); border-right:1px solid var(--border);
+    }
+    .plan-table thead th:first-child { background:var(--bg2); }
+    .pt-feat-col { background:rgba(230,126,34,0.06); }
+}
+
+/* Extras */
+.plan-extras {
+    display:flex; gap:20px; justify-content:center; flex-wrap:wrap;
+    padding:16px; background:var(--bg); border-radius:12px;
+    border:1px solid var(--border);
+}
+.plan-extra {
+    text-align:center; font-size:13px; color:var(--text2);
+}
+.plan-extra strong { display:block; font-size:18px; font-weight:800; color:var(--accent); }
+
+/* ===== UPSELL SECTION ===== */
+.upsell {
+    padding:80px 0;
+    background:linear-gradient(135deg, var(--bg-dark) 0%, #2c1f0e 100%);
+    color:#fff; text-align:center;
+}
+.upsell-title {
+    font-family:var(--serif); font-size:clamp(28px,4vw,44px);
+    font-weight:700; margin-bottom:16px;
+}
+.upsell-title em { color:var(--gold); font-style:italic; }
+.upsell-sub { font-size:17px; color:rgba(255,255,255,0.6); max-width:600px; margin:0 auto 40px; line-height:1.6; }
+.upsell-features {
+    display:flex; gap:40px; justify-content:center; flex-wrap:wrap;
+    margin-bottom:40px;
+}
+.upsell-feat {
+    text-align:center; max-width:200px;
+}
+.upsell-feat-icon { font-size:40px; margin-bottom:8px; }
+.upsell-feat h3 { font-size:16px; font-weight:700; margin-bottom:4px; }
+.upsell-feat p { font-size:13px; color:rgba(255,255,255,0.5); }
+
+/* ===== CTA ===== */
+.cta {
+    padding:60px 0; text-align:center;
+}
+.cta-box {
+    background:var(--accent); border-radius:24px;
+    padding:48px 32px; color:#fff;
+    position:relative; overflow:hidden;
+}
+.cta-box::before {
+    content:""; position:absolute; inset:0;
+    background:radial-gradient(circle at 20% 50%, rgba(255,255,255,0.1) 0%, transparent 50%);
+}
+.cta-box h2 { font-family:var(--serif); font-size:clamp(24px,3.5vw,36px); font-weight:700; margin-bottom:12px; position:relative; }
+.cta-box p { font-size:16px; opacity:0.85; margin-bottom:24px; position:relative; }
+.btn-white {
+    padding:16px 32px; border-radius:12px;
+    background:#fff; color:var(--accent); border:none;
+    font-family:var(--font); font-size:16px; font-weight:800;
+    cursor:pointer; position:relative;
+}
+.btn-white:hover { background:#f5f5f5; }
+
+/* ===== FOOTER ===== */
+.footer {
+    padding:40px 0; background:var(--bg-dark); color:rgba(255,255,255,0.4);
+    text-align:center; font-size:13px;
+}
+.footer a { color:var(--accent); text-decoration:none; }
+.footer-logo { font-size:20px; font-weight:900; color:#fff; margin-bottom:8px; }
+.footer-logo span { color:var(--accent); }
+
+/* ===== SCROLL ANIMATIONS ===== */
+.reveal {
+    opacity:0; transform:translateY(24px);
+    transition:opacity 0.6s ease, transform 0.6s ease;
+}
+.reveal.visible { opacity:1; transform:translateY(0); }
+.reveal-delay-1 { transition-delay:0.1s; }
+.reveal-delay-2 { transition-delay:0.2s; }
+.reveal-delay-3 { transition-delay:0.3s; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+    <div class="nav-inner">
+        <a href="#" class="nav-logo">Me<span>Traes</span>.com</a>
+        <div class="nav-links">
+            <a href="#beneficios">Beneficios</a>
+            <a href="#planes">Planes</a>
+            <a href="#contacto" class="nav-cta">Probar gratis</a>
+        </div>
+    </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+    <div class="container">
+        <div class="hero-grid">
+            <div>
+                <div class="hero-tag">POS para Restaurantes</div>
+                <h1>Tu restaurante<br>vende m&aacute;s con <em>MeTraes</em></h1>
+                <p class="hero-sub">Carta Virtual con QR, cocina en tiempo real, facturaci&oacute;n electr&oacute;nica ilimitada. Todo desde el celular. Sin equipos costosos.</p>
+                <div class="hero-actions">
+                    <a href="#planes" class="btn btn-primary">Ver planes desde S/45</a>
+                    <a href="#demo" class="btn btn-outline">Ver demo en vivo</a>
+                </div>
+                <div class="hero-stat">
+                    <div class="stat"><div class="stat-val">+25%</div><div class="stat-lbl">Ticket promedio</div></div>
+                    <div class="stat"><div class="stat-val">0</div><div class="stat-lbl">Equipos extra</div></div>
+                    <div class="stat"><div class="stat-val">&infin;</div><div class="stat-lbl">Boletas/Facturas</div></div>
+                </div>
+            </div>
+            <!-- DEVICE MOCKUPS -->
+            <div class="devices">
+                <!-- TV: KDS -->
+                <div class="tv">
+                    <div class="tv-screen">
+                        <div class="screen-content sc-kds">
+                            <div class="sc-kds-head">
+                                <div class="sc-kds-title">&#128293; COCINA</div>
+                                <div class="sc-kds-pills">
+                                    <div class="sc-kds-pill a">TODAS</div>
+                                    <div class="sc-kds-pill">WOK</div>
+                                    <div class="sc-kds-pill">FRI</div>
+                                    <div class="sc-kds-pill">PAR</div>
+                                </div>
+                            </div>
+                            <div class="sc-kds-grid">
+                                <div class="sc-kds-card"><div class="sc-kds-num">#001</div><div class="sc-kds-table">Mesa 1 - P1</div><div class="sc-kds-items"><div class="sc-kds-item"><span class="sc-kds-item-dot"></span>2x Chaufa Esp.</div><div class="sc-kds-item"><span class="sc-kds-item-dot"></span>1x Lomo Salt.</div></div><div class="sc-kds-timer">3m</div></div>
+                                <div class="sc-kds-card"><div class="sc-kds-num">#002</div><div class="sc-kds-table">Mesa 5 - VIP</div><div class="sc-kds-items"><div class="sc-kds-item"><span class="sc-kds-item-dot"></span>1x Tall. Saltado</div><div class="sc-kds-item"><span class="sc-kds-item-dot"></span>2x Want&aacute;n F.</div></div><div class="sc-kds-timer">7m</div></div>
+                                <div class="sc-kds-card"><div class="sc-kds-num">#003</div><div class="sc-kds-table">Mesa 3 - P1</div><div class="sc-kds-items"><div class="sc-kds-item"><span class="sc-kds-item-dot"></span>3x Tipakay</div></div><div class="sc-kds-timer">12m</div></div>
+                                <div class="sc-kds-card"><div class="sc-kds-num">#004</div><div class="sc-kds-table">&#128230; P/Llevar</div><div class="sc-kds-items"><div class="sc-kds-item"><span class="sc-kds-item-dot" style="background:#22c55e"></span>1x Costillas</div></div><div class="sc-kds-timer">&#10003;</div></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tv-stand"></div>
+                </div>
+                <!-- Tablet: POS -->
+                <div class="tablet">
+                    <div class="tablet-screen">
+                        <div class="screen-content sc-pos">
+                            <div class="sc-pos-left">
+                                <div class="sc-pos-cats">
+                                    <div class="sc-pos-cat a">&#127834; Arroces</div>
+                                    <div class="sc-pos-cat">&#127836; Sopas</div>
+                                    <div class="sc-pos-cat">&#129385; Carnes</div>
+                                    <div class="sc-pos-cat">&#127863; Bebidas</div>
+                                </div>
+                                <div class="sc-pos-prods">
+                                    <div class="sc-pos-prod"><div class="sc-pos-prod-icon">&#127834;</div><div class="sc-pos-prod-name">Chaufa Esp.</div><div class="sc-pos-prod-price">S/22</div></div>
+                                    <div class="sc-pos-prod"><div class="sc-pos-prod-icon">&#127834;</div><div class="sc-pos-prod-name">Chaufa Pollo</div><div class="sc-pos-prod-price">S/18</div></div>
+                                    <div class="sc-pos-prod"><div class="sc-pos-prod-icon">&#127834;</div><div class="sc-pos-prod-name">Chijaukay</div><div class="sc-pos-prod-price">S/25</div></div>
+                                    <div class="sc-pos-prod"><div class="sc-pos-prod-icon">&#129385;</div><div class="sc-pos-prod-name">Lomo Salt.</div><div class="sc-pos-prod-price">S/28</div></div>
+                                    <div class="sc-pos-prod"><div class="sc-pos-prod-icon">&#127831;</div><div class="sc-pos-prod-name">Tipakay</div><div class="sc-pos-prod-price">S/25</div></div>
+                                    <div class="sc-pos-prod"><div class="sc-pos-prod-icon">&#127863;</div><div class="sc-pos-prod-name">Inca Kola</div><div class="sc-pos-prod-price">S/5</div></div>
+                                </div>
+                            </div>
+                            <div class="sc-pos-right">
+                                <div><div class="sc-pos-item">2x Chaufa Esp.</div><div class="sc-pos-item">1x Lomo</div><div class="sc-pos-item">2x Inca Kola</div></div>
+                                <div><div class="sc-pos-total">S/ 82.00</div><div class="sc-pos-send">ENVIAR &#10148;</div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Phone: Carta Virtual -->
+                <div class="phone">
+                    <div class="phone-notch"></div>
+                    <div class="phone-screen">
+                        <div class="screen-content sc-carta">
+                            <div class="sc-carta-head"><h3>&#127860; F&eacute;nix Dorado</h3></div>
+                            <div class="sc-carta-tabs">
+                                <div class="sc-carta-tab a">Arroces</div>
+                                <div class="sc-carta-tab">Sopas</div>
+                                <div class="sc-carta-tab">Carnes</div>
+                            </div>
+                            <div class="sc-carta-grid">
+                                <div class="sc-plate"><div class="sc-plate-img c1">&#127834;</div><div class="sc-plate-name">Chaufa Esp.</div><div class="sc-plate-price">S/ 22</div></div>
+                                <div class="sc-plate"><div class="sc-plate-img c2">&#127836;</div><div class="sc-plate-name">Sopa Want&aacute;n</div><div class="sc-plate-price">S/ 18</div></div>
+                                <div class="sc-plate"><div class="sc-plate-img c3">&#129385;</div><div class="sc-plate-name">Lomo Saltado</div><div class="sc-plate-price">S/ 28</div></div>
+                                <div class="sc-plate"><div class="sc-plate-img c4">&#127863;</div><div class="sc-plate-name">Inca Kola</div><div class="sc-plate-price">S/ 5</div></div>
+                            </div>
+                            <div class="sc-cart"><span>&#128722; 3 items</span><span>S/ 68.00</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- BENEFITS -->
+<section class="benefits" id="beneficios">
+    <div class="container">
+        <div class="section-tag dark">Filosof&iacute;a MeTraes</div>
+        <div class="section-title" style="color:#fff">No es solo un POS.<br>Es tu <span style="color:var(--accent)">motor de ventas</span>.</div>
+        <div class="section-sub">Dise&ntilde;ado para que tu restaurante venda m&aacute;s, no solo para controlar lo que ya vendes.</div>
+        <div class="ben-grid">
+            <div class="ben-card reveal">
+                <div class="ben-icon" style="background:rgba(230,126,34,0.15)">&#128200;</div>
+                <h3>Eleva tu Ticket Promedio</h3>
+                <p>La Carta Virtual sugiere complementos autom&aacute;ticamente. &iquest;Pidi&oacute; arroz? Le sugiere bebida y postre. Cada pedido crece.</p>
+            </div>
+            <div class="ben-card reveal reveal-delay-1">
+                <div class="ben-icon" style="background:rgba(241,196,15,0.15)">&#11088;</div>
+                <h3>UpSelling Inteligente</h3>
+                <p>Notificaciones en tiempo real al mesero: &ldquo;Mesa 5 lleva 40 min sin pedir postre&rdquo;. Oportunidades que hoy se pierden.</p>
+            </div>
+            <div class="ben-card reveal reveal-delay-2">
+                <div class="ben-icon" style="background:rgba(39,174,96,0.15)">&#127881;</div>
+                <h3>Herramienta para Vender M&aacute;s</h3>
+                <p>Tu carta virtual es tu mejor vendedor: fotos, descripciones, badges de &ldquo;Popular&rdquo; y &ldquo;Nuevo&rdquo;. Funciona 24/7 sin sueldo.</p>
+            </div>
+            <div class="ben-card reveal">
+                <div class="ben-icon" style="background:rgba(41,128,185,0.15)">&#128225;</div>
+                <h3>Facturaci&oacute;n Electr&oacute;nica Ilimitada</h3>
+                <p>Boletas y facturas SUNAT incluidas en todos los planes. Sin l&iacute;mite. Sin costo extra. Integrado con Facturalo.pro.</p>
+            </div>
+            <div class="ben-card reveal reveal-delay-1">
+                <div class="ben-icon" style="background:rgba(231,76,60,0.15)">&#128293;</div>
+                <h3>Cocina en Tiempo Real</h3>
+                <p>El cocinero ve pedidos al instante en su celular o TV. Nada de papelitos. Cero errores. Timer autom&aacute;tico por plato.</p>
+            </div>
+            <div class="ben-card reveal reveal-delay-2">
+                <div class="ben-icon" style="background:rgba(142,68,173,0.15)">&#128241;</div>
+                <h3>Sin Equipos Costosos</h3>
+                <p>Funciona en el celular que ya tienes. No necesitas TV, tablets ni impresoras especiales. Empieza hoy, crece despu&eacute;s.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how" id="demo">
+    <div class="container">
+        <div style="text-align:center; margin-bottom:48px;">
+            <div class="section-tag light">As&iacute; funciona</div>
+            <div class="section-title">Del QR al plato en 4 pasos</div>
+        </div>
+        <div class="how-steps">
+            <div class="how-step reveal"><div class="how-num">1</div><h3>Cliente escanea QR</h3><p>Cada mesa tiene su c&oacute;digo QR. El cliente abre la carta desde su celular. Sin app, sin registro.</p></div>
+            <div class="how-step reveal reveal-delay-1"><div class="how-num">2</div><h3>Arma su pedido</h3><p>Elige platos, tama&ntilde;os, extras. Ve fotos y precios. Env&iacute;a con un toque.</p></div>
+            <div class="how-step reveal reveal-delay-2"><div class="how-num">3</div><h3>Cocina recibe al instante</h3><p>El pedido aparece en la pantalla del cocinero con timer. Sin papeles, sin gritos.</p></div>
+            <div class="how-step reveal reveal-delay-3"><div class="how-num">4</div><h3>Mesero lleva y cobra</h3><p>Notificaci&oacute;n cuando est&aacute; listo. Cobra con Yape, efectivo o tarjeta. Boleta autom&aacute;tica.</p></div>
+        </div>
+    </div>
+</section>
+
+<!-- PLANS -->
+<section class="plans" id="planes">
+    <div class="container">
+        <div style="text-align:center; margin-bottom:48px;">
+            <div class="section-tag light">Planes claros, sin sorpresas</div>
+            <div class="section-title">Elige tu plan</div>
+            <p class="section-sub" style="margin:12px auto 0">Todos incluyen facturaci&oacute;n electr&oacute;nica ilimitada, carta virtual y soporte.</p>
+        </div>
+
+        <!-- PLAN TABLE -->
+        <div class="plan-table-wrap">
+            <table class="plan-table">
+                <thead>
+                    <tr>
+                        <th class="pt-feature-head">Qu&eacute; incluye</th>
+                        <th class="pt-head">
+                            <div class="pt-icon">&#127860;</div>
+                            <div class="pt-name">Entrada</div>
+                            <div class="pt-price"><sup>S/</sup>45<span>/mes</span></div>
+                        </th>
+                        <th class="pt-head pt-featured">
+                            <div class="pt-badge">Popular</div>
+                            <div class="pt-icon">&#127869;</div>
+                            <div class="pt-name">Principal</div>
+                            <div class="pt-price"><sup>S/</sup>69<span>/mes</span></div>
+                        </th>
+                        <th class="pt-head">
+                            <div class="pt-icon">&#127870;</div>
+                            <div class="pt-name">Banquete</div>
+                            <div class="pt-price"><sup>S/</sup>129<span>/mes</span></div>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td class="pt-feat">&#128101; Cuentas de usuario</td><td class="pt-val"><strong>3</strong><br><span class="pt-detail">Cocina, Caja, Mozo</span></td><td class="pt-val pt-feat-col"><strong>5</strong><br><span class="pt-detail">Combina a tu medida</span></td><td class="pt-val"><strong>12</strong><br><span class="pt-detail">Cocina, Bar, Parrilla, Cajas, Admin, Mozos</span></td></tr>
+                    <tr><td class="pt-feat">&#127978; Locales</td><td class="pt-val">1</td><td class="pt-val pt-feat-col"><strong>2</strong></td><td class="pt-val"><strong>3</strong></td></tr>
+                    <tr><td class="pt-feat">&#128241; Carta Virtual QR</td><td class="pt-val pt-yes">&#10003;</td><td class="pt-val pt-feat-col pt-yes">&#10003;</td><td class="pt-val pt-yes">&#10003;</td></tr>
+                    <tr><td class="pt-feat">&#128293; KDS Cocina (celular + TV)</td><td class="pt-val pt-yes">&#10003;</td><td class="pt-val pt-feat-col pt-yes">&#10003;</td><td class="pt-val pt-yes">&#10003;</td></tr>
+                    <tr><td class="pt-feat">&#127867; Multi-estaci&oacute;n (Wok, Bar, Parrilla)</td><td class="pt-val pt-no">&mdash;</td><td class="pt-val pt-feat-col pt-no">&mdash;</td><td class="pt-val pt-yes">&#10003;</td></tr>
+                    <tr><td class="pt-feat">&#128225; Boletas y Facturas SUNAT</td><td class="pt-val pt-yes">Ilimitadas</td><td class="pt-val pt-feat-col pt-yes">Ilimitadas</td><td class="pt-val pt-yes">Ilimitadas</td></tr>
+                    <tr><td class="pt-feat">&#128202; Reportes de ventas</td><td class="pt-val">B&aacute;sico</td><td class="pt-val pt-feat-col"><strong>Completo</strong></td><td class="pt-val"><strong>Avanzado</strong></td></tr>
+                    <tr><td class="pt-feat">&#128200; Platos m&aacute;s vendidos</td><td class="pt-val pt-no">&mdash;</td><td class="pt-val pt-feat-col pt-yes">&#10003;</td><td class="pt-val pt-yes">&#10003;</td></tr>
+                    <tr><td class="pt-feat">&#11088; UpSelling autom&aacute;tico</td><td class="pt-val pt-no">&mdash;</td><td class="pt-val pt-feat-col pt-no">&mdash;</td><td class="pt-val pt-yes">&#10003;</td></tr>
+                    <tr><td class="pt-feat">&#127760; Control por zonas</td><td class="pt-val pt-no">&mdash;</td><td class="pt-val pt-feat-col pt-yes">&#10003;</td><td class="pt-val pt-yes">&#10003;</td></tr>
+                    <tr><td class="pt-feat">&#128222; Soporte</td><td class="pt-val">WhatsApp</td><td class="pt-val pt-feat-col">WhatsApp</td><td class="pt-val"><strong>Prioritario</strong></td></tr>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td class="pt-feat"></td>
+                        <td class="pt-val"><button class="plan-btn outline" onclick="contact('Entrada')">Empezar</button></td>
+                        <td class="pt-val pt-feat-col"><button class="plan-btn primary" onclick="contact('Principal')">Elegir</button></td>
+                        <td class="pt-val"><button class="plan-btn outline" onclick="contact('Banquete')">Elegir</button></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <!-- Extras -->
+        <div class="plan-extras reveal" style="margin-top:24px;">
+            <div class="plan-extra"><strong>+S/10</strong>por cuenta adicional/mes</div>
+            <div class="plan-extra"><strong>+S/20</strong>por local adicional/mes</div>
+            <div class="plan-extra"><strong>Gratis</strong>facturaci&oacute;n electr&oacute;nica</div>
+        </div>
+    </div>
+</section>
+
+<!-- UPSELL PHILOSOPHY -->
+<section class="upsell">
+    <div class="container">
+        <div class="upsell-title">No vendemos software.<br>Vendemos <em>mesas que facturan m&aacute;s</em>.</div>
+        <p class="upsell-sub">Cada QR en tu mesa es un vendedor silencioso. Sugiere, tienta, complementa. Tu ticket promedio sube sin que el mesero diga una palabra.</p>
+        <div class="upsell-features">
+            <div class="upsell-feat"><div class="upsell-feat-icon">&#128214;</div><h3>Carta que vende</h3><p>Fotos, badges &ldquo;Popular&rdquo;, sugerencias autom&aacute;ticas</p></div>
+            <div class="upsell-feat"><div class="upsell-feat-icon">&#128276;</div><h3>Alertas al mesero</h3><p>&ldquo;Mesa 3: 30 min sin postre&rdquo;</p></div>
+            <div class="upsell-feat"><div class="upsell-feat-icon">&#128202;</div><h3>Datos que hablan</h3><p>Qu&eacute; se vende, cu&aacute;ndo, d&oacute;nde</p></div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA -->
+<section class="cta" id="contacto">
+    <div class="container">
+        <div class="cta-box">
+            <h2>Empieza hoy. Vende m&aacute;s ma&ntilde;ana.</h2>
+            <p>Prueba MeTraes gratis por 7 d&iacute;as. Sin tarjeta. Sin compromiso.</p>
+            <button class="btn-white" onclick="contact('Demo')">&#128172; Escribir por WhatsApp</button>
+        </div>
+    </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+    <div class="container">
+        <div class="footer-logo">Me<span>Traes</span>.com</div>
+        <p>PERU SISTEMAS PRO E.I.R.L. &bull; Iquitos, Loreto</p>
+        <p style="margin-top:8px">Hecho con &#10084;&#65039; en la selva peruana</p>
+    </div>
+</footer>
+
+<script>
+// Scroll reveal
+var reveals = document.querySelectorAll(".reveal");
+var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+            entry.target.classList.add("visible");
+        }
+    });
+}, { threshold:0.15 });
+reveals.forEach(function(el) { observer.observe(el); });
+
+// WhatsApp contact
+function contact(plan) {
+    var msg = encodeURIComponent("Hola! Me interesa MeTraes plan " + plan + " para mi restaurante.");
+    window.open("https://wa.me/51967317946?text=" + msg, "_blank");  // TODO: Cambiar 967317946 por tu WhatsApp real
+}
+</script>
+</body>
+</html>
