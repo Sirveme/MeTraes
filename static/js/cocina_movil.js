@@ -230,8 +230,8 @@ var APP = {
                 return false;
             });
             toUpdate.forEach(function(i) { APP._updateItem(i.id, act); });
-            btn.style.opacity = "0.5"; btn.textContent = "\u23f3";
-            setTimeout(function() { btn.style.opacity = "1"; }, 1000);
+            btn.style.opacity = "0.5"; btn.textContent = "Enviando...";
+            setTimeout(function() { btn.style.opacity = "1"; }, 1500);
         });
 
         return card;
