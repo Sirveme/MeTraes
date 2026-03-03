@@ -76,6 +76,14 @@ const KDS_WS = {
             this._updateStatus('disconnected');
             this._stopHeartbeat();
             if (this.onDisconnected) this.onDisconnected();
+            // Auth failed: token inválido o restaurant_id no coincide
+            if (event.code === 4001 || event.code === 4003 || event.code === 403) {
+                console.warn('[KDS-WS] Token inválido, forzando re-login');
+                localStorage.removeItem('access_token');
+                var pinEl = document.getElementById('pin-login');
+                if (pinEl) { pinEl.style.display = 'flex'; }
+                return; // No reconectar
+            }
             this._scheduleReconnect();
         };
 
