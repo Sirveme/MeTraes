@@ -66,6 +66,7 @@ def get_pending_orders(db: Session, restaurant_id: int, station_id: int = None) 
                 "modifiers_summary": item.modifier_summary,
                 "notes": item.notes,
                 "status": item.status,
+                "station_id": item.station_id,
                 "is_urgent": item.is_urgent,
                 "is_fire": item.is_fire,
                 "course": item.course,
