@@ -504,12 +504,30 @@ const KDS = {
     // UTILITIES
     // ========================================
 
+    _audioCtx: null,
+
     _playSound(elementId) {
-        const audio = document.getElementById(elementId);
-        if (audio) {
-            audio.currentTime = 0;
-            audio.play().catch(() => {});  // Ignorar error si autoplay bloqueado
-        }
+        // Web Audio API beep (no depende de .wav/.mp3)
+        try {
+            if (!this._audioCtx) this._audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const ctx = this._audioCtx;
+            const isUrgent = elementId.includes('urgent');
+            const freq = isUrgent ? 1200 : 880;
+            const times = isUrgent ? 5 : 3;
+            const dur = 0.2;
+            for (let i = 0; i < times; i++) {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.frequency.value = freq;
+                osc.type = 'square';
+                gain.gain.value = 0.3;
+                const start = ctx.currentTime + i * (dur + 0.1);
+                osc.start(start);
+                osc.stop(start + dur);
+            }
+        } catch(e) {}
     },
 
     _escHtml(str) {
