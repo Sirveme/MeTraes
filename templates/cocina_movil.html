@@ -72,14 +72,27 @@
 </script>
 <script>
     (function(){
+        var rid = window.KDS_CONFIG.restaurant_id;
         var token = localStorage.getItem('access_token');
         if (!token) {
             document.getElementById('pin-login').style.display = 'flex';
+            return;
         }
-        document.getElementById('pin-input').addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') doLogin();
-        });
+        try {
+            var payload = JSON.parse(atob(token.split('.')[1]));
+            if (parseInt(payload.restaurant_id) !== rid || (payload.exp && payload.exp * 1000 < Date.now())) {
+                localStorage.removeItem('access_token');
+                document.getElementById('pin-login').style.display = 'flex';
+                return;
+            }
+        } catch(e) {
+            localStorage.removeItem('access_token');
+            document.getElementById('pin-login').style.display = 'flex';
+        }
     })();
+    document.getElementById('pin-input').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') doLogin();
+    });
     function doLogin() {
         var pin = document.getElementById('pin-input').value;
         var rid = window.KDS_CONFIG.restaurant_id;

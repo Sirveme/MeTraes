@@ -104,17 +104,55 @@
         #pin-input:focus{border-color:#e67e22}
     </style>
     <script>
-        // Check if we have a valid token, if not show PIN login
+        // Check if we have a valid token for THIS restaurant
         (function(){
+            var rid = window.KDS_CONFIG.restaurant_id;
             var token = localStorage.getItem('access_token');
             if (!token) {
                 document.getElementById('pin-login').style.display = 'flex';
+                return;
             }
-            // Enter key on PIN input
-            document.getElementById('pin-input').addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') doLogin();
-            });
+            // Decode JWT payload and check restaurant_id
+            try {
+                var payload = JSON.parse(atob(token.split('.')[1]));
+                if (parseInt(payload.restaurant_id) !== rid) {
+                    console.warn('[KDS] Token es de restaurant', payload.restaurant_id, 'pero necesitamos', rid);
+                    localStorage.removeItem('access_token');
+                    document.getElementById('pin-login').style.display = 'flex';
+                    return;
+                }
+                // Check expiration
+                if (payload.exp && payload.exp * 1000 < Date.now()) {
+                    console.warn('[KDS] Token expirado');
+                    localStorage.removeItem('access_token');
+                    document.getElementById('pin-login').style.display = 'flex';
+                    return;
+                }
+            } catch(e) {
+                localStorage.removeItem('access_token');
+                document.getElementById('pin-login').style.display = 'flex';
+            }
+            // Track consecutive WS failures
+            var wsFails = 0;
+            var origOnClose = null;
+            var checkWS = setInterval(function() {
+                var statusEl = document.getElementById('connection-status');
+                if (statusEl && statusEl.textContent.indexOf('Sin conexión') !== -1) {
+                    wsFails++;
+                    if (wsFails >= 3) {
+                        clearInterval(checkWS);
+                        localStorage.removeItem('access_token');
+                        document.getElementById('pin-login').style.display = 'flex';
+                    }
+                } else {
+                    wsFails = 0;
+                }
+            }, 4000);
         })();
+        // Enter key on PIN input
+        document.getElementById('pin-input').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') doLogin();
+        });
         function doLogin() {
             var pin = document.getElementById('pin-input').value;
             var rid = window.KDS_CONFIG.restaurant_id;
@@ -130,7 +168,6 @@
             .then(function(data) {
                 localStorage.setItem('access_token', data.access_token);
                 document.getElementById('pin-login').style.display = 'none';
-                // Reload to connect WebSocket with new token
                 location.reload();
             })
             .catch(function(e) {
@@ -148,7 +185,7 @@
     </script>
 
     <!-- JS por módulo (convención Metraes) -->
-    <script src="/static/js/cocina_1_ws.js?v=4"></script>
-    <script src="/static/js/cocina_1.js?v=4"></script>
+    <script src="/static/js/cocina_1_ws.js?v=5"></script>
+    <script src="/static/js/cocina_1.js?v=5"></script>
 </body>
 </html>
