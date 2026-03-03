@@ -41,6 +41,14 @@ async def health():
     return {"status": "ok", "app": settings.APP_NAME, "version": settings.APP_VERSION}
 
 
+# --- home page ---
+from fastapi import Request
+
+@app.get("/")
+async def home_page(request: Request):
+    return templates.TemplateResponse("home.html", {"request": request})
+
+
 # --- Routers ---
 app.include_router(auth.router,    prefix="/api/v1/auth",    tags=["Auth"])
 app.include_router(tables.router,  prefix="/api/v1/tables",  tags=["Tables"])
