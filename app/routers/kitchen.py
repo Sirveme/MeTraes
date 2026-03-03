@@ -118,16 +118,18 @@ async def kitchen_websocket(
     Envía:
     - ping: heartbeat
     """
-    # Validar token
-    if token:
-        try:
-            payload = decode_token(token)
-            if int(payload.get("restaurant_id", 0)) != restaurant_id:
-                await websocket.close(code=4003, reason="Restaurant no coincide")
-                return
-        except Exception:
-            await websocket.close(code=4001, reason="Token inválido")
+    # Validar token (requerido)
+    if not token:
+        await websocket.close(code=4001, reason="Token requerido")
+        return
+    try:
+        payload = decode_token(token)
+        if int(payload.get("restaurant_id", 0)) != restaurant_id:
+            await websocket.close(code=4003, reason="Restaurant no coincide")
             return
+    except Exception:
+        await websocket.close(code=4001, reason="Token inválido")
+        return
     
     # Conectar a canales
     channel = f"kitchen:{restaurant_id}"
