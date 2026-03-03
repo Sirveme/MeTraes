@@ -129,4 +129,6 @@ def _table_to_dict(table: Table) -> dict:
         "pos_x": table.pos_x,
         "pos_y": table.pos_y,
         "shape": table.shape,
+        "qr_code": table.qr_code,
+        "qr_url": f"/carta/{table.qr_code}" if table.qr_code else None,
     }
