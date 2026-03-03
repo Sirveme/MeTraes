@@ -43,9 +43,66 @@
     </div>
 </div>
 
+<div id="pin-login" class="pin-overlay" style="display:none">
+    <div class="pin-box">
+        <div style="font-size:48px;margin-bottom:12px">🔥</div>
+        <h2 style="font-size:22px;font-weight:900;margin-bottom:4px;color:#fff">COCINA</h2>
+        <p style="font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:20px">Ingresa tu PIN</p>
+        <input id="pin-input" type="tel" maxlength="6" placeholder="PIN"
+            style="width:180px;padding:14px;font-size:24px;text-align:center;border:2px solid rgba(255,255,255,0.2);
+            border-radius:12px;background:rgba(255,255,255,0.08);color:#fff;font-weight:900;letter-spacing:6px;
+            font-family:monospace;outline:none" autocomplete="off">
+        <br>
+        <button id="pin-btn" onclick="doLogin()"
+            style="margin-top:14px;padding:12px 40px;border:none;border-radius:12px;
+            background:#e67e22;color:#fff;font-size:15px;font-weight:700;cursor:pointer;
+            font-family:inherit">Entrar</button>
+        <p id="pin-error" style="color:#ef4444;font-size:12px;margin-top:10px;display:none"></p>
+    </div>
+</div>
+<style>
+    .pin-overlay{position:fixed;inset:0;z-index:200;background:#0a0a14;
+        display:flex;align-items:center;justify-content:center;text-align:center}
+    .pin-box{padding:32px}
+    #pin-input:focus{border-color:#e67e22}
+</style>
+
 <script>
     window.KDS_CONFIG = {{ config | tojson }};
 </script>
-<script src="/static/js/cocina_movil.js?v=4"></script>
+<script>
+    (function(){
+        var token = localStorage.getItem('access_token');
+        if (!token) {
+            document.getElementById('pin-login').style.display = 'flex';
+        }
+        document.getElementById('pin-input').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') doLogin();
+        });
+    })();
+    function doLogin() {
+        var pin = document.getElementById('pin-input').value;
+        var rid = window.KDS_CONFIG.restaurant_id;
+        var errEl = document.getElementById('pin-error');
+        var btn = document.getElementById('pin-btn');
+        if (!pin || pin.length < 4) { errEl.textContent = 'PIN de 4-6 dígitos'; errEl.style.display = 'block'; return; }
+        btn.textContent = 'Conectando...'; btn.disabled = true;
+        fetch('/api/v1/auth/login-pin', {
+            method: 'POST', headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({pin: pin, restaurant_id: rid})
+        })
+        .then(function(r) { if (!r.ok) throw new Error('PIN incorrecto'); return r.json(); })
+        .then(function(data) {
+            localStorage.setItem('access_token', data.access_token);
+            document.getElementById('pin-login').style.display = 'none';
+            location.reload();
+        })
+        .catch(function(e) {
+            errEl.textContent = e.message; errEl.style.display = 'block';
+            btn.textContent = 'Entrar'; btn.disabled = false;
+        });
+    }
+</script>
+<script src="/static/js/cocina_movil.js?v=5"></script>
 </body>
 </html>
