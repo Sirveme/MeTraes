@@ -52,6 +52,45 @@ async def carta_virtual_page(
             "message": "Mesa no encontrada. Pide al mesero un nuevo código QR.",
         })
 
+    return _render_carta(request, table)
+
+
+@router.get("/carta")
+async def carta_virtual_by_number(
+    request: Request,
+    restaurant_id: int = None,
+    mesa: int = None,
+    db: Session = Depends(get_db),
+):
+    """
+    Acceso alternativo sin QR: /carta?restaurant_id=3&mesa=5
+    Para clientes sin cámara o para el dueño durante demos.
+    """
+    if not restaurant_id or not mesa:
+        return templates.TemplateResponse("carta_404.html", {
+            "request": request,
+            "message": "Indica el número de mesa. Ejemplo: /carta?restaurant_id=3&mesa=5",
+        })
+
+    table = db.query(Table).options(
+        joinedload(Table.zone),
+        joinedload(Table.restaurant),
+    ).filter(
+        Table.restaurant_id == restaurant_id,
+        Table.number == mesa,
+    ).first()
+
+    if not table or not table.restaurant:
+        return templates.TemplateResponse("carta_404.html", {
+            "request": request,
+            "message": f"Mesa {mesa} no encontrada en este restaurante.",
+        })
+
+    return _render_carta(request, table)
+
+
+def _render_carta(request: Request, table):
+    """Helper: renderiza carta virtual para una mesa."""
     restaurant = table.restaurant
 
     if not restaurant.virtual_menu_enabled:
@@ -74,7 +113,7 @@ async def carta_virtual_page(
         "table_label": table.label or f"Mesa {table.number}",
         "zone_name": table.zone.name if table.zone else None,
         "zone_color": table.zone.color if table.zone else "#3b82f6",
-        "qr_code": qr_code,
+        "qr_code": table.qr_code,
         "currency": restaurant.currency or "PEN",
         "takeaway_enabled": restaurant.takeaway_enabled,
         "delivery_enabled": restaurant.delivery_enabled,
