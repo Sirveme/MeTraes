@@ -10,7 +10,7 @@ from datetime import datetime, timezone, date
 from decimal import Decimal
 from fastapi import APIRouter, Depends, Request, HTTPException
 from fastapi.templating import Jinja2Templates
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session
 from sqlalchemy import func as sqlfunc
 
 from app.core.database import get_db
@@ -216,7 +216,7 @@ async def caja_menu(
     return {
         "categories": [
             {
-                "id": c.id, "name": c.name, "short_name": c.short_name,
+                "id": c.id, "name": c.name,
                 "icon": c.icon, "sort_order": c.sort_order,
             }
             for c in categories
@@ -410,6 +410,178 @@ async def registrar_venta(
         "comprobante": sale.comprobante_type,
         "total_cost": float(total_cost),
         "margin": float(total - total_cost) if total_cost > 0 else None,
+    }
+
+
+# ============================================================
+# API: Pedidos pendientes de cobro
+# ============================================================
+
+@router.get("/api/v1/caja/pendientes")
+async def pedidos_pendientes(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Pedidos que pasaron por cocina y están listos para cobrar."""
+    import traceback
+    try:
+        rid = current_user.restaurant_id
+
+        orders = db.query(Order).filter(
+            Order.restaurant_id == rid,
+            Order.status.in_(["sent", "preparing", "ready", "served"]),
+        ).order_by(Order.created_at.desc()).all()
+
+        result = []
+        for o in orders:
+            # Load items safely
+            items_list = []
+            total_cost = 0
+            try:
+                for item in o.items:
+                    items_list.append({
+                        "name": item.product_name or "Item",
+                        "qty": item.quantity or 1,
+                        "price": float(item.unit_price or 0),
+                        "total": float(item.line_total or 0),
+                    })
+                    if item.product_id:
+                        prod = db.query(Product).filter(Product.id == item.product_id).first()
+                        if prod and prod.cost_price:
+                            total_cost += float(prod.cost_price) * (item.quantity or 1)
+            except Exception as e:
+                print(f"[CAJA] Error loading items for order {o.id}: {e}")
+
+            # Safe field access
+            table_num = None
+            zone_name = None
+            try:
+                if o.table_id and o.table:
+                    table_num = o.table.number
+                if o.zone_id and o.zone:
+                    zone_name = o.zone.name
+            except Exception:
+                pass
+
+            result.append({
+                "order_id": o.id,
+                "order_number": o.order_number or 0,
+                "status": o.status,
+                "order_type": o.order_type or "dine_in",
+                "table_number": table_num,
+                "zone_name": zone_name,
+                "customer_name": o.customer_name or "",
+                "total": float(o.total or 0),
+                "total_cost": total_cost,
+                "items": items_list,
+                "created_at": o.created_at.isoformat() if o.created_at else None,
+                "minutes_ago": o.kitchen_wait_minutes if o.sent_to_kitchen_at else 0,
+            })
+
+        return {"orders": result}
+    except Exception as e:
+        print(f"[CAJA ERROR] pendientes: {e}")
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ============================================================
+# API: Cobrar pedido existente
+# ============================================================
+
+@router.post("/api/v1/caja/cobrar/{order_id}")
+async def cobrar_pedido(
+    order_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Cobrar un pedido que ya pasó por cocina."""
+    rid = current_user.restaurant_id
+    body = await request.json()
+    payment_method = body.get("payment_method", "efectivo")
+    paid_amount = Decimal(str(body.get("paid_amount", "0")))
+    comprobante_type = body.get("comprobante")
+
+    order = db.query(Order).filter(
+        Order.id == order_id,
+        Order.restaurant_id == rid,
+    ).first()
+
+    if not order:
+        raise HTTPException(status_code=404, detail="Pedido no encontrado")
+
+    # Caja abierta
+    caja = db.query(CashRegister).filter(
+        CashRegister.restaurant_id == rid,
+        CashRegister.is_active == True,
+        CashRegister.is_open == True,
+    ).first()
+    if not caja:
+        raise HTTPException(status_code=400, detail="Caja no está abierta")
+
+    total = order.total or Decimal("0")
+    if paid_amount == 0:
+        paid_amount = total
+    change = paid_amount - total if paid_amount > total else Decimal("0")
+    igv = (total / Decimal("1.18") * Decimal("0.18")).quantize(Decimal("0.01"))
+
+    # Update order
+    order.status = "paid"
+    order.payment_method = payment_method
+    order.paid_amount = paid_amount
+    order.change_amount = change
+    order.cashier_id = current_user.id
+    order.cash_register_id = caja.id
+    order.paid_at = datetime.now(timezone.utc)
+
+    # Daily sequence for sale
+    today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+    seq = db.query(sqlfunc.count(Sale.id)).filter(
+        Sale.restaurant_id == rid,
+        Sale.created_at >= today_start,
+    ).scalar() or 0
+    seq += 1
+
+    # Create Sale
+    sale = Sale(
+        restaurant_id=rid,
+        branch_id=current_user.branch_id,
+        order_id=order.id,
+        cash_register_id=caja.id,
+        sale_number=seq,
+        subtotal=total - igv,
+        tax_amount=igv,
+        total=total,
+        payment_method=payment_method,
+        paid_amount=paid_amount,
+        change_amount=change,
+        cashier_id=current_user.id,
+        shift_date=datetime.now(timezone.utc),
+        customer_doc_type=body.get("customer_doc_type", "0"),
+        customer_doc_number=body.get("customer_doc_number"),
+        customer_name=body.get("customer_name") or order.customer_name,
+    )
+    if comprobante_type in ("boleta", "factura"):
+        sale.comprobante_type = "03" if comprobante_type == "boleta" else "01"
+
+    db.add(sale)
+
+    # Update caja
+    caja.current_sales_count = (caja.current_sales_count or 0) + 1
+    caja.current_sales_total = (caja.current_sales_total or Decimal("0")) + total
+    if payment_method == "efectivo":
+        caja.current_cash = (caja.current_cash or Decimal("0")) + total - change
+
+    db.commit()
+
+    return {
+        "sale_id": sale.id,
+        "order_id": order.id,
+        "order_number": order.order_number,
+        "total": float(total),
+        "change": float(change),
+        "payment_method": payment_method,
     }
 
 

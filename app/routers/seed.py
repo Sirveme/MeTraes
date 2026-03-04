@@ -18,18 +18,31 @@ from app.models.user import User
 from app.models.category import Category
 from app.models.product import Product
 from app.models.cash_register import CashRegister
+from app.models.order import Order
 
 router = APIRouter()
 
 
 @router.post("/demo")
-async def seed_demo_data(db: Session = Depends(get_db)):
+async def seed_demo_data(reset: bool = False, db: Session = Depends(get_db)):
     """Crea datos completos de un chifa para demo del KDS."""
     
     # Verificar si ya existe
     existing = db.query(Restaurant).filter(Restaurant.ruc == "20000000001").first()
     if existing:
-        return {"message": "Demo ya existe", "restaurant_id": existing.id}
+        if not reset:
+            return {"message": "Demo ya existe. Usa ?reset=true para recrear.", "restaurant_id": existing.id}
+        # Romper referencias circulares Table ↔ Order antes de borrar
+        db.query(Table).filter(Table.restaurant_id == existing.id).update(
+            {"current_order_id": None}, synchronize_session=False
+        )
+        db.query(Order).filter(Order.restaurant_id == existing.id).update(
+            {"table_id": None}, synchronize_session=False
+        )
+        db.commit()
+        # Ahora sí borrar (cascade elimina zonas, mesas, productos, etc.)
+        db.delete(existing)
+        db.commit()
     
     # --- 1. Restaurant ---
     restaurant = Restaurant(
@@ -75,10 +88,14 @@ async def seed_demo_data(db: Session = Depends(get_db)):
     db.flush()
     
     # --- 4. Tables ---
+    import hashlib
     mesa_num = 1
     tables_per_zone = [12, 4, 8, 5]  # Total: 29 mesas
     for zone, count in zip(zones, tables_per_zone):
         for j in range(count):
+            # QR code: hash corto único por mesa
+            raw = f"{restaurant.id}-{zone.id}-{mesa_num}"
+            qr = hashlib.md5(raw.encode()).hexdigest()[:12]
             t = Table(
                 restaurant_id=restaurant.id,
                 branch_id=branch.id,
@@ -89,6 +106,7 @@ async def seed_demo_data(db: Session = Depends(get_db)):
                 pos_x=(j % 4) * 2,
                 pos_y=(j // 4) * 2,
                 sort_order=mesa_num,
+                qr_code=qr,
             )
             db.add(t)
             mesa_num += 1
@@ -230,6 +248,7 @@ async def seed_demo_data(db: Session = Depends(get_db)):
             name=pd["name"],
             short_name=pd["short_name"],
             sale_price=pd["price"],
+            cost_price=pd.get("cost", round(pd["price"] * 0.38, 2)),
             modifiers=pd.get("modifiers", []),
             sizes=pd.get("sizes", []),
             is_instant=pd.get("instant", False),
