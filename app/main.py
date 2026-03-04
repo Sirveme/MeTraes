@@ -46,7 +46,7 @@ from fastapi import Request
 
 @app.get("/")
 async def landing_page(request: Request):
-    return templates.TemplateResponse("landing.html", {"request": request})
+    return templates.TemplateResponse("home.html", {"request": request})
 
 
 # --- Routers ---
@@ -61,4 +61,5 @@ app.include_router(cocina_movil.router, tags=["KDS Mobile"])
 app.include_router(carta_virtual.router, tags=["Carta Virtual"])
 app.include_router(demo_hub.router, tags=["Demo Hub"])
 app.include_router(caja.router, tags=["Caja"])
+
 app.include_router(pedido_1.router, tags=["POS Mesero"])
