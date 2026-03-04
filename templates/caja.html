@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Caja | Metraes.com</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/caja.css?v=1">
+</head>
+<body>
+
+<!-- PIN LOGIN -->
+<div id="pin-overlay" class="overlay">
+    <div class="ov-box">
+        <div style="font-size:40px;margin-bottom:8px">💰</div>
+        <h2>CAJA</h2>
+        <p class="ov-sub">Ingresa tu PIN</p>
+        <input id="pin-input" type="tel" maxlength="6" placeholder="----" class="pin-field" autocomplete="off">
+        <button id="pin-btn" class="btn-accent">Entrar</button>
+        <p id="pin-error" class="ov-error"></p>
+    </div>
+</div>
+
+<!-- ABRIR CAJA -->
+<div id="open-overlay" class="overlay" style="display:none">
+    <div class="ov-box">
+        <div style="font-size:40px;margin-bottom:8px">🔓</div>
+        <h2>Abrir Caja</h2>
+        <p class="ov-sub">Monto inicial (puede ser 0)</p>
+        <input id="open-amount" type="number" value="0" min="0" step="0.5" class="pin-field" style="letter-spacing:2px">
+        <button id="open-btn" class="btn-accent">Abrir turno</button>
+    </div>
+</div>
+
+<!-- CERRAR CAJA -->
+<div id="close-overlay" class="overlay" style="display:none">
+    <div class="ov-box" style="max-width:360px">
+        <h2>Cerrar Caja</h2>
+        <div id="close-summary" class="close-summary"></div>
+        <label class="ov-label">Efectivo en caja:</label>
+        <input id="close-amount" type="number" min="0" step="0.5" class="pin-field" style="letter-spacing:2px">
+        <div class="close-actions">
+            <button id="close-cancel" class="btn-ghost">Cancelar</button>
+            <button id="close-btn" class="btn-accent">Cerrar turno</button>
+        </div>
+    </div>
+</div>
+
+<!-- PAGO MODAL -->
+<div id="pay-overlay" class="overlay" style="display:none">
+    <div class="ov-box" style="max-width:400px">
+        <h2>Cobrar</h2>
+        <div id="pay-total" class="pay-total"></div>
+        <div class="pay-methods">
+            <button class="pay-m active" data-method="efectivo">💵 Efectivo</button>
+            <button class="pay-m" data-method="yape">📱 Yape</button>
+            <button class="pay-m" data-method="plin">📲 Plin</button>
+            <button class="pay-m" data-method="tarjeta">💳 Tarjeta</button>
+        </div>
+        <div id="cash-input-wrap" class="cash-wrap">
+            <label>Paga con:</label>
+            <input id="pay-amount" type="number" min="0" step="0.5" class="pin-field" style="font-size:22px;letter-spacing:2px">
+            <div id="pay-change" class="pay-change"></div>
+        </div>
+        <div class="pay-comp">
+            <label class="ov-label">Comprobante:</label>
+            <div class="comp-btns">
+                <button class="comp-b active" data-comp="boleta">🧾 Boleta</button>
+                <button class="comp-b" data-comp="factura">📄 Factura</button>
+                <button class="comp-b" data-comp="">Sin comp.</button>
+            </div>
+        </div>
+        <div id="factura-fields" style="display:none">
+            <input id="cust-ruc" type="text" placeholder="RUC" maxlength="11" class="text-input">
+            <input id="cust-name" type="text" placeholder="Razón social" class="text-input">
+        </div>
+        <div class="close-actions">
+            <button id="pay-cancel" class="btn-ghost">Cancelar</button>
+            <button id="pay-confirm" class="btn-accent">Confirmar pago</button>
+        </div>
+    </div>
+</div>
+
+<!-- SUCCESS TOAST -->
+<div id="toast" class="toast"></div>
+
+<!-- ============ MAIN LAYOUT ============ -->
+<div id="main" class="main" style="display:none">
+
+    <!-- HEADER -->
+    <header class="header">
+        <div class="h-left">
+            <span class="h-logo">💰 CAJA</span>
+            <span id="h-rest" class="h-rest"></span>
+            <span id="h-status" class="h-badge">Cerrada</span>
+        </div>
+        <div class="h-right">
+            <div id="h-summary" class="h-summary">
+                <span id="h-count">0 ventas</span>
+                <span id="h-total" class="h-total">S/ 0.00</span>
+            </div>
+            <button id="btn-resumen" class="btn-sm" title="Resumen del día">📊</button>
+            <button id="btn-cerrar" class="btn-sm btn-danger" title="Cerrar caja">🔒</button>
+            <span id="h-clock" class="h-clock">--:--</span>
+        </div>
+    </header>
+
+    <!-- BODY: Products + Order -->
+    <div class="body">
+
+        <!-- LEFT: Products -->
+        <div class="left">
+            <!-- Quick Menu Buttons -->
+            <div class="quick-section">
+                <div class="quick-title">⚡ Venta rápida</div>
+                <div id="quick-btns" class="quick-grid">
+                    <!-- Se llena dinámicamente -->
+                </div>
+            </div>
+
+            <!-- Category Tabs -->
+            <div id="cat-tabs" class="cat-tabs">
+                <button class="cat-tab active" data-cat="all">Todos</button>
+            </div>
+
+            <!-- Products Grid -->
+            <div id="prod-grid" class="prod-grid">
+                <!-- Se llena dinámicamente -->
+            </div>
+        </div>
+
+        <!-- RIGHT: Current Order -->
+        <div class="right">
+            <div class="order-head">
+                <span class="order-title">Pedido actual</span>
+                <button id="btn-clear" class="btn-clear" title="Limpiar">🗑️</button>
+            </div>
+
+            <div id="order-items" class="order-items">
+                <div class="order-empty">Toca un producto para agregar</div>
+            </div>
+
+            <div class="order-footer">
+                <div class="totals">
+                    <div class="total-row"><span>Subtotal</span><span id="t-subtotal">S/ 0.00</span></div>
+                    <div class="total-row"><span>IGV (18%)</span><span id="t-igv">S/ 0.00</span></div>
+                    <div class="total-row total-main"><span>TOTAL</span><span id="t-total">S/ 0.00</span></div>
+                    <div class="total-row cost-row" id="cost-row" style="display:none">
+                        <span>Costo est.</span><span id="t-cost">S/ 0.00</span>
+                    </div>
+                    <div class="total-row margin-row" id="margin-row" style="display:none">
+                        <span>Ganancia</span><span id="t-margin">S/ 0.00</span>
+                    </div>
+                </div>
+                <button id="btn-cobrar" class="btn-cobrar" disabled>COBRAR</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- RESUMEN MODAL -->
+<div id="resumen-overlay" class="overlay" style="display:none">
+    <div class="ov-box" style="max-width:440px; text-align:left">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+            <h2 style="margin:0">📊 Resumen del día</h2>
+            <button class="btn-clear" onclick="CAJA.closeResumen()">✕</button>
+        </div>
+        <div id="resumen-content"></div>
+    </div>
+</div>
+
+<!-- CONFIG -->
+<script>
+    window.CAJA_CONFIG = {{ config | tojson }};
+</script>
+<script src="/static/js/caja.js?v=1"></script>
+</body>
+</html>

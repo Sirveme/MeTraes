@@ -100,7 +100,7 @@
         var btn = document.getElementById('pin-btn');
         if (!pin || pin.length < 4) { errEl.textContent = 'PIN de 4-6 dígitos'; errEl.style.display = 'block'; return; }
         btn.textContent = 'Conectando...'; btn.disabled = true;
-        fetch('/api/v1/auth/login-pin', {
+        fetch('/api/v1/auth/login/pin', {
             method: 'POST', headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({pin: pin, restaurant_id: rid})
         })
