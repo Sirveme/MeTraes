@@ -103,6 +103,11 @@
         .pin-box{padding:40px}
         #pin-input:focus{border-color:#e67e22}
     </style>
+    <!-- CONFIG (debe ir ANTES del script de PIN) -->
+    <script>
+        window.KDS_CONFIG = {{ config | tojson }};
+    </script>
+
     <script>
         // Check if we have a valid token for THIS restaurant
         (function(){
@@ -175,13 +180,6 @@
                 btn.textContent = 'Entrar'; btn.disabled = false;
             });
         }
-    </script>
-
-    <!-- ============================================ -->
-    <!-- CONFIG (inyectada por Jinja2 desde Python)   -->
-    <!-- ============================================ -->
-    <script>
-        window.KDS_CONFIG = {{ config | tojson }};
     </script>
 
     <!-- JS por módulo (convención Metraes) -->
