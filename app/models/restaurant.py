@@ -109,7 +109,7 @@ class Restaurant(Base):
     products = relationship("Product", back_populates="restaurant", cascade="all, delete-orphan")
     kitchen_stations = relationship("KitchenStation", back_populates="restaurant", cascade="all, delete-orphan")
     orders = relationship("Order", back_populates="restaurant", cascade="all, delete-orphan")
-    #sales = relationship("Sale", back_populates="restaurant", cascade="all, delete-orphan")
+    sales = relationship("Sale", back_populates="restaurant", cascade="all, delete-orphan")
     
     def __repr__(self):
         return f"<Restaurant {self.id}: {self.name} ({self.ruc})>"
