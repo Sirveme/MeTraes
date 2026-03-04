@@ -571,5 +571,13 @@ const KDS = {
 
 // --- Inicializar cuando el DOM esté listo ---
 document.addEventListener('DOMContentLoaded', () => {
+    // No iniciar si no hay token válido (la pantalla PIN se encarga)
+    var token = localStorage.getItem('access_token');
+    if (!token) return;
+    try {
+        var payload = JSON.parse(atob(token.split('.')[1]));
+        var rid = window.KDS_CONFIG.restaurant_id;
+        if (parseInt(payload.restaurant_id) !== rid) return;
+    } catch(e) { return; }
     KDS.init();
 });

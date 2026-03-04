@@ -80,6 +80,7 @@ var CAJA = {
     },
 
     onLoggedIn: function() {
+        document.getElementById("pin-overlay").style.display = "none";
         document.getElementById("main").style.display = "block";
         // Check caja status
         var self = this;
@@ -117,6 +118,72 @@ var CAJA = {
             self.renderCategories();
             self.renderProducts();
             self.renderQuickMenus();
+            self.loadPendientes();
+            // Auto-refresh pending every 10s
+            setInterval(function() { self.loadPendientes(); }, 10000);
+        });
+    },
+
+    // ================================================
+    // PENDING ORDERS (from kitchen)
+    // ================================================
+    loadPendientes: function() {
+        var self = this;
+        this.api("GET", "/api/v1/caja/pendientes")
+        .then(function(data) {
+            self.renderPendientes(data.orders || []);
+        })
+        .catch(function() {});
+    },
+
+    renderPendientes: function(orders) {
+        var section = document.getElementById("pending-section");
+        var container = document.getElementById("pending-orders");
+        if (!orders || orders.length === 0) {
+            section.style.display = "none";
+            return;
+        }
+        section.style.display = "block";
+        var html = "";
+        var self = this;
+        orders.forEach(function(o) {
+            var statusClass = o.status === "ready" ? "ready" : (o.status === "preparing" ? "preparing" : "sent");
+            var statusLabel = o.status === "ready" ? "Listo" : (o.status === "preparing" ? "Preparando" : "Enviado");
+            var loc = o.table_number ? "Mesa " + o.table_number : (o.order_type === "takeaway" ? "P/Llevar" : "Pedido");
+            if (o.zone_name) loc += " - " + o.zone_name;
+            var itemsText = o.items.map(function(i) { return i.qty + "x " + i.name; }).join(", ");
+            if (itemsText.length > 40) itemsText = itemsText.substring(0, 40) + "...";
+
+            html += '<div class="pend-card" onclick="CAJA.cobrarPendiente(' + o.order_id + ')" data-oid="' + o.order_id + '">' +
+                '<div class="pk-head">' +
+                    '<span class="pk-num">#' + String(o.order_number).padStart(3, "0") + '</span>' +
+                    '<span class="pk-status ' + statusClass + '">' + statusLabel + '</span>' +
+                '</div>' +
+                '<div class="pk-loc">' + loc + (o.customer_name ? " — " + o.customer_name : "") + '</div>' +
+                '<div class="pk-items">' + itemsText + '</div>' +
+                '<div class="pk-total">S/ ' + o.total.toFixed(2) + '</div>' +
+            '</div>';
+        });
+        container.innerHTML = html;
+    },
+
+    cobrarPendiente: function(orderId) {
+        var self = this;
+        // Load order into pay modal directly
+        this.api("GET", "/api/v1/caja/pendientes").then(function(data) {
+            var order = (data.orders || []).find(function(o) { return o.order_id === orderId; });
+            if (!order) { self.toast("Pedido no encontrado"); return; }
+            self._pendingOrderId = orderId;
+            document.getElementById("pay-total").textContent = "S/ " + order.total.toFixed(2);
+            document.getElementById("pay-amount").value = order.total.toFixed(2);
+            document.getElementById("pay-change").textContent = "";
+            document.getElementById("pay-overlay").style.display = "flex";
+            document.getElementById("factura-fields").style.display = "none";
+            document.querySelectorAll(".pay-m").forEach(function(b) { b.classList.remove("active"); });
+            document.querySelector('.pay-m[data-method="efectivo"]').classList.add("active");
+            document.querySelectorAll(".comp-b").forEach(function(b) { b.classList.remove("active"); });
+            document.querySelector('.comp-b[data-comp="boleta"]').classList.add("active");
+            document.getElementById("cash-input-wrap").style.display = "block";
         });
     },
 
@@ -144,7 +211,7 @@ var CAJA = {
             var btn = document.createElement("button");
             btn.className = "cat-tab";
             btn.dataset.cat = c.id;
-            btn.textContent = (c.icon || "") + " " + (c.short_name || c.name);
+            btn.textContent = (c.icon || "") + " " + c.name;
             btn.onclick = function() { self.selectCategory(c.id); };
             container.appendChild(btn);
         });
@@ -362,7 +429,7 @@ var CAJA = {
 
     confirmPay: function() {
         var self = this;
-        var total = this.getTotal();
+        var total = this._pendingOrderId ? parseFloat(document.getElementById("pay-total").textContent.replace("S/ ", "")) : this.getTotal();
         var method = document.querySelector(".pay-m.active").dataset.method;
         var comp = document.querySelector(".comp-b.active").dataset.comp;
         var paid = method === "efectivo" ? parseFloat(document.getElementById("pay-amount").value) || 0 : total;
@@ -372,6 +439,39 @@ var CAJA = {
             return;
         }
 
+        var btn = document.getElementById("pay-confirm");
+        btn.textContent = "Procesando..."; btn.disabled = true;
+
+        // === COBRAR PEDIDO PENDIENTE (de cocina) ===
+        if (this._pendingOrderId) {
+            var body = {
+                payment_method: method,
+                paid_amount: paid,
+                comprobante: comp || null,
+            };
+            if (comp === "factura") {
+                body.customer_doc_type = "6";
+                body.customer_doc_number = document.getElementById("cust-ruc").value;
+                body.customer_name = document.getElementById("cust-name").value;
+            }
+            this.api("POST", "/api/v1/caja/cobrar/" + this._pendingOrderId, body)
+            .then(function(data) {
+                document.getElementById("pay-overlay").style.display = "none";
+                btn.textContent = "Confirmar pago"; btn.disabled = false;
+                var changeText = data.change > 0 ? " | Vuelto: S/" + data.change.toFixed(2) : "";
+                self.toast("✅ Cobrado #" + String(data.order_number).padStart(3, "0") + " — S/" + data.total.toFixed(2) + changeText);
+                self._pendingOrderId = null;
+                self.loadPendientes();
+                self.api("GET", "/api/v1/caja/estado").then(function(est) { self.updateHeader(est); });
+            })
+            .catch(function(e) {
+                btn.textContent = "Confirmar pago"; btn.disabled = false;
+                self.toast("Error: " + (e.message || "Error de red"));
+            });
+            return;
+        }
+
+        // === VENTA NUEVA (directa desde caja) ===
         var body = {
             items: this.cart.map(function(c) {
                 return {
@@ -395,9 +495,6 @@ var CAJA = {
             body.customer_name = document.getElementById("cust-name").value;
         }
 
-        var btn = document.getElementById("pay-confirm");
-        btn.textContent = "Procesando..."; btn.disabled = true;
-
         this.api("POST", "/api/v1/caja/venta", body)
         .then(function(data) {
             document.getElementById("pay-overlay").style.display = "none";
@@ -406,7 +503,6 @@ var CAJA = {
             self.renderCart();
             var changeText = data.change > 0 ? " | Vuelto: S/" + data.change.toFixed(2) : "";
             self.toast("✅ Venta #" + String(data.order_number).padStart(3, "0") + " — S/" + data.total.toFixed(2) + changeText);
-            // Update header
             self.api("GET", "/api/v1/caja/estado").then(function(est) { self.updateHeader(est); });
         })
         .catch(function(e) {
@@ -528,11 +624,14 @@ var CAJA = {
         if (body) opts.body = JSON.stringify(body);
         return fetch(url, opts).then(function(r) {
             if (!r.ok) {
-                return r.json().then(function(err) {
-                    throw new Error(err.detail || "Error " + r.status);
-                }).catch(function(e) {
-                    if (e.message) throw e;
-                    throw new Error("Error " + r.status);
+                return r.text().then(function(text) {
+                    try {
+                        var err = JSON.parse(text);
+                        throw new Error(err.detail || "Error " + r.status);
+                    } catch(e) {
+                        if (e.message && e.message !== text) throw e;
+                        throw new Error("Error " + r.status + ": " + text.substring(0, 100));
+                    }
                 });
             }
             return r.json();
@@ -552,7 +651,7 @@ var CAJA = {
         document.getElementById("btn-clear").onclick = function() { self.clearCart(); };
         document.getElementById("btn-cerrar").onclick = function() { self.openCloseCaja(); };
         document.getElementById("btn-resumen").onclick = function() { self.openResumen(); };
-        document.getElementById("pay-cancel").onclick = function() { document.getElementById("pay-overlay").style.display = "none"; };
+        document.getElementById("pay-cancel").onclick = function() { document.getElementById("pay-overlay").style.display = "none"; self._pendingOrderId = null; };
         document.getElementById("pay-confirm").onclick = function() { self.confirmPay(); };
         document.getElementById("pay-amount").oninput = function() { self.updateChange(); };
         document.getElementById("close-cancel").onclick = function() { document.getElementById("close-overlay").style.display = "none"; };

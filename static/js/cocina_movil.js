@@ -49,7 +49,16 @@ var APP = {
             self._setStatus(true); self._reconnectAttempts = 0;
             self._hb = setInterval(function() { try { self.ws.send("ping"); } catch(e){} }, 30000);
         };
-        this.ws.onclose = function() { self._setStatus(false); clearInterval(self._hb); self._reconnect(); };
+        this.ws.onclose = function(ev) {
+            self._setStatus(false); clearInterval(self._hb);
+            if (ev.code === 4001 || ev.code === 4003 || ev.code === 403) {
+                localStorage.removeItem("access_token");
+                var pinEl = document.getElementById("pin-login");
+                if (pinEl) pinEl.style.display = "flex";
+                return;
+            }
+            self._reconnect();
+        };
         this.ws.onerror = function() {};
         this.ws.onmessage = function(e) {
             if (e.data === "pong") return;
@@ -305,4 +314,12 @@ var APP = {
     _esc: function(s) { if (!s) return ""; var d = document.createElement("div"); d.textContent = s; return d.innerHTML; },
 };
 
-document.addEventListener("DOMContentLoaded", function() { APP.init(); });
+document.addEventListener("DOMContentLoaded", function() {
+    var token = localStorage.getItem("access_token");
+    if (!token) return;
+    try {
+        var payload = JSON.parse(atob(token.split(".")[1]));
+        if (parseInt(payload.restaurant_id) !== window.KDS_CONFIG.restaurant_id) return;
+    } catch(e) { return; }
+    APP.init();
+});
