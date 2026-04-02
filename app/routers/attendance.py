@@ -123,6 +123,7 @@ async def check_attendance(
     db.refresh(attendance)
 
     # Push: verificar asistencia completa despues de check-in
+    print(f"[ATTENDANCE] Check {body.check_type} de user {user.name} (id={user.id}, restaurant={user.restaurant_id})")
     if body.check_type == "in":
         try:
             from app.services.push_service import notify_attendance_complete, notify_attendance_missing
@@ -144,10 +145,16 @@ async def check_attendance(
             present = len(present_ids)
             branch = db.query(Branch).filter(Branch.id == user.branch_id).first()
             branch_name = branch.name if branch else ""
+            print(f"[ATTENDANCE] Personal: {present}/{expected} presentes en '{branch_name}'")
             if present >= expected and expected > 0:
+                print(f"[ATTENDANCE] Personal completo! Llamando notify_attendance_complete...")
                 notify_attendance_complete(db, user.restaurant_id, branch_name, present, expected)
-        except Exception:
-            pass
+            else:
+                print(f"[ATTENDANCE] Personal incompleto ({present}<{expected}), no se envia push de complete")
+        except Exception as e:
+            import traceback
+            print(f"[ATTENDANCE] Error en push attendance: {type(e).__name__}: {e}")
+            traceback.print_exc()
 
     return {
         "status": "ok",
