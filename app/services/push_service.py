@@ -37,9 +37,13 @@ def send_push(
     Nunca lanza excepcion — todo en try/except.
     """
     try:
+        print(f"[PUSH] send_push called: restaurant={restaurant_id}, title='{title}', roles={roles}, user_ids={user_ids}, alert_type={alert_type}")
+
         if not VAPID_PRIVATE_KEY:
-            logger.warning("[push] VAPID_PRIVATE_KEY no configurada, skipping push")
+            print("[PUSH] VAPID_PRIVATE_KEY no configurada, skipping")
             return
+
+        print(f"[PUSH] VAPID_PRIVATE_KEY present ({len(VAPID_PRIVATE_KEY)} chars)")
 
         from pywebpush import webpush, WebPushException
 
@@ -60,12 +64,16 @@ def send_push(
                 User.is_active == True,
             ).all()
             role_user_ids = [u.id for u in role_users]
+            print(f"[PUSH] Users con roles {roles}: {role_user_ids}")
             if not role_user_ids:
+                print("[PUSH] No hay usuarios con esos roles, saliendo")
                 return
             query = query.filter(PushSubscription.user_id.in_(role_user_ids))
 
         subscriptions = query.all()
+        print(f"[PUSH] Encontradas {len(subscriptions)} subscriptions activas")
         if not subscriptions:
+            print("[PUSH] Sin subscriptions, saliendo")
             return
 
         # Filtrar por alert_config si aplica
@@ -81,13 +89,19 @@ def send_push(
                 if config is None:
                     from app.models.alert_config import ALERT_TYPES
                     default = ALERT_TYPES.get(alert_type, {}).get("default", True)
+                    print(f"[PUSH] User {sub.user_id}: no config for '{alert_type}', default={default}")
                     if default:
                         enabled_user_ids.add(sub.user_id)
                 elif config.is_enabled:
+                    print(f"[PUSH] User {sub.user_id}: alert '{alert_type}' enabled")
                     enabled_user_ids.add(sub.user_id)
+                else:
+                    print(f"[PUSH] User {sub.user_id}: alert '{alert_type}' DISABLED, skipping")
             subscriptions = [s for s in subscriptions if s.user_id in enabled_user_ids]
+            print(f"[PUSH] Despues de filtro alert_config: {len(subscriptions)} subscriptions")
 
         if not subscriptions:
+            print("[PUSH] Todas filtradas por alert_config, saliendo")
             return
 
         payload = json.dumps({
@@ -101,6 +115,7 @@ def send_push(
 
         for sub in subscriptions:
             try:
+                print(f"[PUSH] Enviando a sub {sub.id} user={sub.user_id} endpoint={sub.endpoint[:60]}...")
                 webpush(
                     subscription_info={
                         "endpoint": sub.endpoint,
@@ -113,19 +128,24 @@ def send_push(
                     vapid_private_key=VAPID_PRIVATE_KEY,
                     vapid_claims=vapid_claims,
                 )
+                print(f"[PUSH] Enviado OK a sub {sub.id}")
             except WebPushException as e:
                 # 410 Gone = subscription expired, desactivar
                 if hasattr(e, 'response') and e.response and e.response.status_code == 410:
                     sub.is_active = False
                     db.commit()
-                    logger.info(f"[push] Subscription {sub.id} desactivada (410 Gone)")
+                    print(f"[PUSH] Sub {sub.id} desactivada (410 Gone)")
                 else:
-                    logger.warning(f"[push] Error enviando a subscription {sub.id}: {e}")
+                    print(f"[PUSH] WebPushException sub {sub.id}: {e}")
+                    if hasattr(e, 'response') and e.response:
+                        print(f"[PUSH]   status={e.response.status_code} body={e.response.text[:200] if e.response.text else ''}")
             except Exception as e:
-                logger.warning(f"[push] Error inesperado subscription {sub.id}: {e}")
+                print(f"[PUSH] Error inesperado sub {sub.id}: {type(e).__name__}: {e}")
 
     except Exception as e:
-        logger.error(f"[push] Error general en send_push: {e}")
+        import traceback
+        print(f"[PUSH] Error general en send_push: {type(e).__name__}: {e}")
+        traceback.print_exc()
 
 
 # ============================================================
