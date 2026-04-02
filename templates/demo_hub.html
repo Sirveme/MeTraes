@@ -5,15 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Demo | Metraes.com</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
 <style>
 :root {
     --bg: #f8fafc; --bg2: #fff; --text: #0f172a; --text2: #475569; --text3: #94a3b8;
     --blue: #2563eb; --blue-light: #eff6ff; --green: #16a34a; --green-light: #f0fdf4;
     --orange: #ea580c; --orange-light: #fff7ed; --purple: #7c3aed; --purple-light: #f5f3ff;
     --red: #dc2626; --red-light: #fef2f2; --cyan: #0891b2; --cyan-light: #ecfeff;
+    --amber: #d97706; --amber-light: #fffbeb;
     --border: #e2e8f0; --shadow: 0 1px 3px rgba(0,0,0,0.06);
     --font: "DM Sans", system-ui, sans-serif;
+    --mono: "JetBrains Mono", monospace;
 }
 * { margin:0; padding:0; box-sizing:border-box; }
 body { background:var(--bg); color:var(--text); font-family:var(--font); min-height:100vh; }
@@ -31,6 +33,18 @@ body { background:var(--bg); color:var(--text); font-family:var(--font); min-hei
 }
 
 .container { max-width:480px; margin:0 auto; padding:16px; }
+
+/* Branch selector */
+.branch-bar {
+    display:flex; gap:6px; padding:10px 16px; justify-content:center;
+    background:#f1f5f9; border-bottom:1px solid var(--border);
+}
+.branch-btn {
+    padding:8px 18px; border-radius:10px; border:2px solid var(--border);
+    background:var(--bg2); font-family:var(--font); font-size:13px;
+    font-weight:700; color:var(--text2); cursor:pointer;
+}
+.branch-btn.active { background:var(--blue); border-color:var(--blue); color:#fff; }
 
 /* Section */
 .section { margin-bottom:20px; }
@@ -55,11 +69,13 @@ body { background:var(--bg); color:var(--text); font-family:var(--font); min-hei
 .role-info { flex:1; }
 .role-name { font-size:16px; font-weight:700; }
 .role-desc { font-size:12px; color:var(--text2); }
+.role-pins { display:flex; gap:6px; flex-wrap:wrap; }
 .role-pin {
     font-size:11px; font-weight:700; padding:3px 10px;
     border-radius:6px; background:var(--bg); border:1px solid var(--border);
-    font-family:monospace; letter-spacing:2px;
+    font-family:var(--mono); letter-spacing:2px;
 }
+.role-pin .pin-name { font-family:var(--font); letter-spacing:0; color:var(--text3); margin-right:4px; }
 
 /* Action buttons */
 .role-actions { display:flex; gap:8px; flex-wrap:wrap; }
@@ -74,21 +90,34 @@ body { background:var(--bg); color:var(--text); font-family:var(--font); min-hei
 .btn-open { background:var(--blue); color:#fff; }
 .btn-share { background:var(--blue-light); color:var(--blue); }
 
-/* Table grid for QR */
-.mesa-grid {
-    display:grid; grid-template-columns:repeat(4, 1fr); gap:6px;
+/* QR section */
+.qr-cards { display:flex; flex-direction:column; gap:10px; }
+.qr-card {
+    background:var(--bg2); border-radius:14px; padding:16px;
+    border:1px solid var(--border); box-shadow:var(--shadow);
+    display:flex; align-items:center; gap:16px;
 }
-.mesa-pill {
-    padding:8px 4px; border-radius:8px; border:1.5px solid var(--border);
-    background:var(--bg2); text-align:center; cursor:pointer;
-    font-size:12px; font-weight:700;
-    transition:all 0.15s;
+.qr-canvas-wrap {
+    width:120px; height:120px; min-width:120px;
+    background:#fff; border-radius:10px; border:1px solid var(--border);
+    display:flex; align-items:center; justify-content:center;
+    overflow:hidden;
 }
-.mesa-pill:active { transform:scale(0.95); }
-.mesa-pill .mn { display:block; font-size:14px; font-weight:800; }
-.mesa-pill .mz { display:block; font-size:9px; color:var(--text3); margin-top:1px; }
+.qr-canvas-wrap canvas { display:block; }
+.qr-info { flex:1; min-width:0; }
+.qr-label { font-size:15px; font-weight:700; margin-bottom:2px; }
+.qr-url { font-size:11px; color:var(--text3); word-break:break-all; font-family:var(--mono); }
+.qr-hint { font-size:12px; color:var(--text2); margin-top:6px; }
+.qr-actions { display:flex; gap:6px; margin-top:8px; }
+.qr-btn {
+    padding:6px 12px; border:none; border-radius:8px;
+    font-family:var(--font); font-size:12px; font-weight:700;
+    cursor:pointer;
+}
+.qr-btn-open { background:var(--blue); color:#fff; }
+.qr-btn-share { background:var(--blue-light); color:var(--blue); }
 
-/* Zone filter */
+/* Table grid for Carta Virtual */
 .zone-filter { display:flex; gap:6px; margin-bottom:10px; overflow-x:auto; }
 .zone-btn {
     padding:5px 12px; border-radius:8px; border:1.5px solid var(--border);
@@ -96,6 +125,16 @@ body { background:var(--bg); color:var(--text); font-family:var(--font); min-hei
     font-weight:700; color:var(--text2); cursor:pointer; white-space:nowrap;
 }
 .zone-btn.active { background:var(--blue); border-color:var(--blue); color:#fff; }
+
+.mesa-grid { display:grid; grid-template-columns:repeat(4, 1fr); gap:6px; }
+.mesa-pill {
+    padding:8px 4px; border-radius:8px; border:1.5px solid var(--border);
+    background:var(--bg2); text-align:center; cursor:pointer;
+    font-size:12px; font-weight:700; transition:all 0.15s;
+}
+.mesa-pill:active { transform:scale(0.95); }
+.mesa-pill .mn { display:block; font-size:14px; font-weight:800; }
+.mesa-pill .mz { display:block; font-size:9px; color:var(--text3); margin-top:1px; }
 
 /* Footer */
 .footer {
@@ -124,11 +163,20 @@ body { background:var(--bg); color:var(--text); font-family:var(--font); min-hei
 
 <div class="top-bar">
     <h1 id="rest-name"></h1>
-    <p>Sistema de gestión en vivo</p>
+    <p>Sistema de gestion en vivo</p>
     <div class="top-badge">DEMO EN TIEMPO REAL</div>
 </div>
 
+<!-- Branch selector (hidden if only 1 branch) -->
+<div id="branch-bar" class="branch-bar" style="display:none"></div>
+
 <div class="container">
+
+    <!-- QR CODES -->
+    <div class="section">
+        <div class="section-title">📲 Escanea para acceder</div>
+        <div id="qr-cards" class="qr-cards"></div>
+    </div>
 
     <!-- ROLES -->
     <div class="section">
@@ -138,7 +186,7 @@ body { background:var(--bg); color:var(--text); font-family:var(--font); min-hei
 
     <!-- CARTA VIRTUAL -->
     <div class="section">
-        <div class="section-title">📱 Carta Virtual — Escanear desde mesa</div>
+        <div class="section-title">🍽️ Carta Virtual — Mesas</div>
         <div id="zone-filter" class="zone-filter"></div>
         <div id="mesa-grid" class="mesa-grid"></div>
     </div>
@@ -148,62 +196,201 @@ body { background:var(--bg); color:var(--text); font-family:var(--font); min-hei
 <div class="footer">
     <div class="footer-brand">Metraes.com</div>
     <div class="footer-tag">Sistema POS para restaurantes</div>
-    <a href="https://metraes.com" class="footer-link">Conocer más</a>
+    <a href="https://metraes.com" class="footer-link">Conocer mas</a>
 </div>
 
 <div id="toast" class="toast"></div>
+
+<!-- QR code generator: qrcode.min.js from CDN -->
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
 
 <script>
 var CFG = {{ config | tojson }};
 var BASE = CFG.base_url;
 var RID = CFG.restaurant_id;
+var CURRENT_BRANCH = null; // null = all
 
-// Role config
-var ROLES = [
-    {
-        key: "owner", icon: "👔", label: "Dueño / Admin", desc: "Ve todo: ventas, control, configuración",
-        color: "#7c3aed", bg: "#f5f3ff",
-        links: [
-            {label: "Abrir POS Caja", url: BASE + "/pos?restaurant_id=" + RID, icon: "💰"},
-        ]
-    },
-    {
-        key: "waiter", icon: "🧑‍🍳", label: "Mesero", desc: "Toma pedidos, atiende mesas",
-        color: "#2563eb", bg: "#eff6ff",
-        links: [
-            {label: "Abrir POS Mesero", url: BASE + "/pos?restaurant_id=" + RID, icon: "📝"},
-        ]
-    },
-    {
-        key: "kitchen", icon: "🔥", label: "Cocina", desc: "Ve pedidos, marca preparado/listo",
-        color: "#ea580c", bg: "#fff7ed",
-        links: [
-            {label: "KDS Pantalla", url: BASE + "/cocina?restaurant_id=" + RID, icon: "🖥️"},
-            {label: "KDS Celular", url: BASE + "/cocina/movil?restaurant_id=" + RID, icon: "📱"},
-        ]
-    },
-    {
-        key: "cashier", icon: "💰", label: "Cajero(a)", desc: "Cobra, emite boletas/facturas",
-        color: "#16a34a", bg: "#f0fdf4",
-        links: [
-            {label: "Abrir Caja", url: BASE + "/caja?restaurant_id=" + RID, icon: "🧾"},
-        ]
-    },
-];
+// ====== ROLE DEFINITIONS ======
+function getRoles() {
+    return [
+        {
+            key: "owner", icon: "👔", label: "Dueño / Admin",
+            desc: "Ve todo: ventas, control, configuracion",
+            color: "#7c3aed", bg: "#f5f3ff",
+            links: [
+                {label: "Abrir Caja", url: BASE + "/caja?restaurant_id=" + RID, icon: "💰"},
+            ]
+        },
+        {
+            key: "manager", icon: "📊", label: "Contador / Gerente",
+            desc: "Dashboard con ventas, top platos, ranking mozos",
+            color: "#d97706", bg: "#fffbeb",
+            links: [
+                {label: "Dashboard", url: BASE + "/dashboard/" + RID, icon: "📈"},
+                {label: "Abrir Caja", url: BASE + "/caja?restaurant_id=" + RID, icon: "💰"},
+            ]
+        },
+        {
+            key: "waiter", icon: "📝", label: "Mesero",
+            desc: "Toma pedidos, atiende mesas",
+            color: "#2563eb", bg: "#eff6ff",
+            links: [
+                {label: "POS Mesero", url: BASE + "/pos?restaurant_id=" + RID, icon: "📋"},
+            ]
+        },
+        {
+            key: "kitchen", icon: "🔥", label: "Cocina",
+            desc: "Ve pedidos, marca preparado/listo",
+            color: "#ea580c", bg: "#fff7ed",
+            links: [
+                {label: "KDS Pantalla", url: BASE + "/cocina?restaurant_id=" + RID, icon: "🖥️"},
+                {label: "KDS Celular", url: BASE + "/cocina/movil?restaurant_id=" + RID, icon: "📱"},
+            ]
+        },
+        {
+            key: "cashier", icon: "💰", label: "Cajero(a)",
+            desc: "Cobra, emite boletas/facturas",
+            color: "#16a34a", bg: "#f0fdf4",
+            links: [
+                {label: "Abrir Caja", url: BASE + "/caja?restaurant_id=" + RID, icon: "🧾"},
+            ]
+        },
+    ];
+}
 
+// ====== INIT ======
 function init() {
     document.getElementById("rest-name").textContent = CFG.restaurant_name;
+
+    // Branch selector
+    if (CFG.branches.length > 1) {
+        renderBranches();
+    }
+
+    renderQRCards();
     renderRoles();
     renderZones();
     renderMesas("all");
 }
 
+// ====== BRANCHES ======
+function renderBranches() {
+    var bar = document.getElementById("branch-bar");
+    bar.style.display = "";
+
+    // "Todos" button
+    var allBtn = document.createElement("button");
+    allBtn.className = "branch-btn active";
+    allBtn.textContent = "Todos";
+    allBtn.dataset.bid = "all";
+    allBtn.onclick = function() { selectBranch(null); };
+    bar.appendChild(allBtn);
+
+    CFG.branches.forEach(function(b) {
+        var btn = document.createElement("button");
+        btn.className = "branch-btn";
+        btn.textContent = b.name;
+        btn.dataset.bid = b.id;
+        btn.onclick = function() { selectBranch(b.id); };
+        bar.appendChild(btn);
+    });
+}
+
+function selectBranch(bid) {
+    CURRENT_BRANCH = bid;
+    document.querySelectorAll(".branch-btn").forEach(function(b) {
+        b.classList.toggle("active", b.dataset.bid === String(bid || "all"));
+    });
+    renderRoles();
+    renderZones();
+    renderMesas("all");
+}
+
+// ====== QR CODES ======
+function renderQRCards() {
+    var container = document.getElementById("qr-cards");
+    container.innerHTML = "";
+
+    var cards = [
+        {
+            label: "POS Mesero",
+            hint: "El mesero escanea y toma pedidos",
+            url: BASE + "/pos?restaurant_id=" + RID,
+            color: "var(--blue)",
+        },
+        {
+            label: "Carta Virtual",
+            hint: "El cliente escanea desde su mesa",
+            url: BASE + "/carta/" + RID,
+            color: "var(--green)",
+        },
+        {
+            label: "KDS Cocina Movil",
+            hint: "El cocinero ve los pedidos en su celular",
+            url: BASE + "/cocina/movil?restaurant_id=" + RID,
+            color: "var(--orange)",
+        },
+        {
+            label: "Dashboard",
+            hint: "El contador/gerente ve las ventas en vivo",
+            url: BASE + "/dashboard/" + RID,
+            color: "var(--purple)",
+        },
+    ];
+
+    cards.forEach(function(c, i) {
+        var card = document.createElement("div");
+        card.className = "qr-card";
+        card.innerHTML =
+            '<div class="qr-canvas-wrap"><canvas id="qr-' + i + '"></canvas></div>' +
+            '<div class="qr-info">' +
+                '<div class="qr-label" style="color:' + c.color + '">' + c.label + '</div>' +
+                '<div class="qr-hint">' + c.hint + '</div>' +
+                '<div class="qr-url">' + c.url.replace(BASE, "") + '</div>' +
+                '<div class="qr-actions">' +
+                    '<button class="qr-btn qr-btn-open" onclick="window.open(\'' + c.url + '\',\'_blank\')">Abrir</button>' +
+                    '<button class="qr-btn qr-btn-share" onclick="shareUrl(\'' + c.label + '\',\'' + c.url + '\')">Compartir</button>' +
+                '</div>' +
+            '</div>';
+        container.appendChild(card);
+
+        // Generate QR
+        if (typeof QRCode !== "undefined") {
+            QRCode.toCanvas(document.getElementById("qr-" + i), c.url, {
+                width: 110, margin: 1, color: { dark: "#0f172a", light: "#ffffff" },
+            });
+        }
+    });
+}
+
+// ====== ROLES ======
 function renderRoles() {
     var container = document.getElementById("roles");
-    ROLES.forEach(function(role) {
-        var users = CFG.users.filter(function(u) { return u.role === role.key; });
-        var pin = users.length > 0 ? users[0].pin : "----";
+    container.innerHTML = "";
+    var roles = getRoles();
 
+    roles.forEach(function(role) {
+        var users = CFG.users.filter(function(u) {
+            if (u.role !== role.key) return false;
+            if (CURRENT_BRANCH !== null && u.branch_id && u.branch_id !== CURRENT_BRANCH) return false;
+            return true;
+        });
+
+        // Skip role if no users match (when filtering by branch)
+        if (users.length === 0 && CURRENT_BRANCH !== null) return;
+
+        // PIN badges — show all matching users
+        var pinsHtml = "";
+        if (users.length > 0) {
+            users.forEach(function(u) {
+                pinsHtml += '<span class="role-pin"><span class="pin-name">' +
+                    esc(u.short_name || u.name) + '</span> ' + (u.pin || "----") + '</span>';
+            });
+        } else {
+            pinsHtml = '<span class="role-pin">----</span>';
+        }
+
+        // Links
         var linksHtml = "";
         role.links.forEach(function(lnk) {
             linksHtml +=
@@ -211,8 +398,8 @@ function renderRoles() {
                     lnk.icon + " " + lnk.label +
                 '</a>';
         });
-        linksHtml += '<button class="action-btn btn-share" onclick="shareRole(\'' +
-            role.label + "','" + role.links[0].url + "')\">📤 Compartir</button>";
+        linksHtml += '<button class="action-btn btn-share" onclick="shareUrl(\'' +
+            role.label + "','" + role.links[0].url + "'" + ')">📤 Compartir</button>';
 
         var card = document.createElement("div");
         card.className = "role-card";
@@ -223,15 +410,23 @@ function renderRoles() {
                     '<div class="role-name">' + role.label + '</div>' +
                     '<div class="role-desc">' + role.desc + '</div>' +
                 '</div>' +
-                '<div class="role-pin">PIN ' + pin + '</div>' +
             '</div>' +
+            '<div class="role-pins" style="margin-bottom:10px">' + pinsHtml + '</div>' +
             '<div class="role-actions">' + linksHtml + '</div>';
         container.appendChild(card);
     });
 }
 
+// ====== ZONES ======
 function renderZones() {
     var container = document.getElementById("zone-filter");
+    container.innerHTML = "";
+
+    var zones = CFG.zones;
+    if (CURRENT_BRANCH !== null) {
+        zones = zones.filter(function(z) { return z.branch_id === CURRENT_BRANCH; });
+    }
+
     var allBtn = document.createElement("button");
     allBtn.className = "zone-btn active";
     allBtn.textContent = "Todas";
@@ -239,7 +434,7 @@ function renderZones() {
     allBtn.dataset.zid = "all";
     container.appendChild(allBtn);
 
-    CFG.zones.forEach(function(z) {
+    zones.forEach(function(z) {
         var btn = document.createElement("button");
         btn.className = "zone-btn";
         btn.textContent = z.short_name || z.name;
@@ -261,9 +456,17 @@ function renderMesas(zoneId) {
     var grid = document.getElementById("mesa-grid");
     grid.innerHTML = "";
     var tables = CFG.tables;
+
+    // Filter by branch
+    if (CURRENT_BRANCH !== null) {
+        tables = tables.filter(function(t) { return t.branch_id === CURRENT_BRANCH; });
+    }
+
+    // Filter by zone
     if (zoneId !== "all") {
         tables = tables.filter(function(t) { return t.zone_id === zoneId; });
     }
+
     tables.forEach(function(t) {
         var zone = CFG.zones.find(function(z) { return z.id === t.zone_id; });
         var pill = document.createElement("div");
@@ -282,10 +485,11 @@ function renderMesas(zoneId) {
     });
 }
 
-function shareRole(roleName, url) {
-    var text = CFG.restaurant_name + " - " + roleName + "\n" + url;
+// ====== UTILITIES ======
+function shareUrl(label, url) {
+    var text = CFG.restaurant_name + " - " + label + "\n" + url;
     if (navigator.share) {
-        navigator.share({title: roleName, text: text, url: url}).catch(function(){});
+        navigator.share({title: label, text: text, url: url}).catch(function(){});
     } else if (navigator.clipboard) {
         navigator.clipboard.writeText(text).then(function() {
             showToast("Link copiado al portapapeles");
@@ -300,6 +504,13 @@ function showToast(msg) {
     t.textContent = msg;
     t.classList.add("show");
     setTimeout(function() { t.classList.remove("show"); }, 2500);
+}
+
+function esc(s) {
+    if (!s) return "";
+    var d = document.createElement("div");
+    d.textContent = s;
+    return d.innerHTML;
 }
 
 document.addEventListener("DOMContentLoaded", init);

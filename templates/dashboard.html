@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0c0a09">
+    <title>Dashboard | Metraes</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/dashboard.css?v=1">
+</head>
+<body>
+
+<!-- PIN Login Overlay -->
+<div id="pin-overlay" class="overlay">
+    <div class="ov-box">
+        <h2>Dashboard</h2>
+        <p class="ov-sub">Ingresa tu PIN para acceder</p>
+        <input id="pin-input" class="pin-field" type="password" inputmode="numeric"
+               maxlength="6" placeholder="****" autofocus
+               onkeydown="if(event.key==='Enter')DASH.login()">
+        <button class="btn-accent" onclick="DASH.login()">Ingresar</button>
+        <p id="pin-error" class="ov-error"></p>
+    </div>
+</div>
+
+<!-- Header -->
+<header id="header" class="header hide">
+    <div class="h-left">
+        <span class="h-logo">METRAES</span>
+        <span id="h-rest" class="h-rest"></span>
+    </div>
+    <div class="h-right">
+        <span id="h-clock" class="h-clock"></span>
+        <span class="h-live">EN VIVO</span>
+    </div>
+</header>
+
+<!-- Filters -->
+<div id="filters" class="filters hide">
+    <button class="filter-btn active" data-period="today" onclick="DASH.setPeriod('today')">Hoy</button>
+    <button class="filter-btn" data-period="week" onclick="DASH.setPeriod('week')">Semana</button>
+    <button class="filter-btn" data-period="month" onclick="DASH.setPeriod('month')">Mes</button>
+</div>
+
+<!-- Main content -->
+<main id="content" class="dash-content hide">
+
+    <!-- A) Summary cards -->
+    <div class="summary-grid">
+        <div class="s-card">
+            <div class="s-label">Vendido</div>
+            <div id="s-total" class="s-value big s-accent">S/ 0</div>
+        </div>
+        <div class="s-card">
+            <div class="s-label">Ventas</div>
+            <div id="s-count" class="s-value">0</div>
+        </div>
+        <div class="s-card">
+            <div class="s-label">Ticket Prom.</div>
+            <div id="s-ticket" class="s-value s-accent">S/ 0</div>
+        </div>
+        <div class="s-card">
+            <div class="s-label">Ganancia Est.</div>
+            <div id="s-profit" class="s-value s-green">S/ 0</div>
+        </div>
+    </div>
+
+    <!-- B) Ventas por hora -->
+    <div class="section">
+        <div class="section-title">Ventas por hora</div>
+        <div id="hourly-chart" class="chart-wrap"></div>
+    </div>
+
+    <!-- C) Comparativo por local -->
+    <div id="branch-section" class="section">
+        <div class="section-title">Por local</div>
+        <table class="branch-table">
+            <thead><tr><th>Local</th><th>Ventas</th><th>Monto</th><th>Ticket</th></tr></thead>
+            <tbody id="branch-body"></tbody>
+        </table>
+    </div>
+
+    <!-- D) Top 10 platos -->
+    <div class="section">
+        <div class="section-title">Top 10 platos</div>
+        <ul id="top-list" class="top-list"></ul>
+    </div>
+
+    <!-- E) Ranking mozos -->
+    <div class="section">
+        <div class="section-title">Ranking mozos</div>
+        <ul id="waiter-list" class="waiter-list"></ul>
+    </div>
+
+</main>
+
+<script>
+    window.DASH_CONFIG = {{ config | tojson }};
+</script>
+<script src="/static/js/dashboard.js?v=1"></script>
+</body>
+</html>
