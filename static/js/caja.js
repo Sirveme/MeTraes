@@ -458,11 +458,14 @@ var CAJA = {
             .then(function(data) {
                 document.getElementById("pay-overlay").style.display = "none";
                 btn.textContent = "Confirmar pago"; btn.disabled = false;
-                var changeText = data.change > 0 ? " | Vuelto: S/" + data.change.toFixed(2) : "";
-                self.toast("✅ Cobrado #" + String(data.order_number).padStart(3, "0") + " — S/" + data.total.toFixed(2) + changeText);
                 self._pendingOrderId = null;
                 self.loadPendientes();
                 self.api("GET", "/api/v1/caja/estado").then(function(est) { self.updateHeader(est); });
+                // Show ticket — build items from data if available
+                var items = (data.items || []).map(function(i) {
+                    return {product_name: i.product_name || i.name, quantity: i.quantity || i.qty, unit_price: i.unit_price || i.price, line_total: i.line_total || (i.quantity * i.unit_price)};
+                });
+                self.showTicket(data, items, method, paid, comp);
             })
             .catch(function(e) {
                 btn.textContent = "Confirmar pago"; btn.disabled = false;
@@ -495,15 +498,18 @@ var CAJA = {
             body.customer_name = document.getElementById("cust-name").value;
         }
 
+        // Guardar copia del cart para el ticket antes de limpiar
+        var ticketItems = self.cart.slice();
+
         this.api("POST", "/api/v1/caja/venta", body)
         .then(function(data) {
             document.getElementById("pay-overlay").style.display = "none";
             btn.textContent = "Confirmar pago"; btn.disabled = false;
             self.cart = [];
             self.renderCart();
-            var changeText = data.change > 0 ? " | Vuelto: S/" + data.change.toFixed(2) : "";
-            self.toast("✅ Venta #" + String(data.order_number).padStart(3, "0") + " — S/" + data.total.toFixed(2) + changeText);
             self.api("GET", "/api/v1/caja/estado").then(function(est) { self.updateHeader(est); });
+            // Show ticket
+            self.showTicket(data, ticketItems, method, paid, comp);
         })
         .catch(function(e) {
             btn.textContent = "Confirmar pago"; btn.disabled = false;
@@ -579,6 +585,92 @@ var CAJA = {
 
     closeResumen: function() {
         document.getElementById("resumen-overlay").style.display = "none";
+    },
+
+    // ================================================
+    // TICKET
+    // ================================================
+    showTicket: function(saleData, items, payMethod, paidAmount, comprobante) {
+        var now = new Date();
+        var fecha = String(now.getDate()).padStart(2, "0") + "/" +
+            String(now.getMonth() + 1).padStart(2, "0") + "/" +
+            now.getFullYear() + " " +
+            String(now.getHours()).padStart(2, "0") + ":" +
+            String(now.getMinutes()).padStart(2, "0");
+
+        var num = "#" + String(saleData.order_number).padStart(3, "0");
+        var total = saleData.total || 0;
+        var igv = saleData.igv || (total / 1.18 * 0.18);
+        var subtotal = total - igv;
+        var change = saleData.change || 0;
+
+        var methodNames = {efectivo:"Efectivo", yape:"Yape", plin:"Plin", tarjeta:"Tarjeta", mixto:"Mixto"};
+        var methodLabel = methodNames[payMethod] || payMethod;
+
+        var html = '<div class="tk-center">';
+        html += '<div class="tk-name">' + this._esc(this.config.restaurant_name || "Restaurante") + '</div>';
+        if (this.config.ruc) html += '<div class="tk-ruc">RUC: ' + this.config.ruc + '</div>';
+        html += '<div class="tk-date">' + fecha + '</div>';
+        html += '<div class="tk-num">' + num + '</div>';
+        html += '</div>';
+
+        html += '<hr class="tk-sep">';
+
+        // Items
+        html += '<table class="tk-items">';
+        if (items && items.length > 0) {
+            for (var i = 0; i < items.length; i++) {
+                var it = items[i];
+                var qty = it.quantity || 1;
+                var name = it.product_name || it.name || "Item";
+                var lineTotal = it.line_total || (qty * (it.unit_price || 0));
+                html += '<tr>';
+                html += '<td class="tk-qty">' + qty + 'x</td>';
+                html += '<td class="tk-iname">' + this._esc(name) + '</td>';
+                html += '<td class="tk-iprice">S/ ' + lineTotal.toFixed(2) + '</td>';
+                html += '</tr>';
+            }
+        }
+        html += '</table>';
+
+        html += '<hr class="tk-sep">';
+
+        // Totals
+        html += '<table class="tk-totals">';
+        html += '<tr><td class="tk-tlabel">Subtotal</td><td class="tk-tval">S/ ' + subtotal.toFixed(2) + '</td></tr>';
+        html += '<tr><td class="tk-tlabel">IGV 18%</td><td class="tk-tval">S/ ' + igv.toFixed(2) + '</td></tr>';
+        html += '<tr class="tk-grand"><td>TOTAL</td><td class="tk-tval">S/ ' + total.toFixed(2) + '</td></tr>';
+        html += '</table>';
+
+        // Payment
+        html += '<div class="tk-pay">';
+        html += methodLabel;
+        if (payMethod === "efectivo") {
+            html += ' — Pagado: S/ ' + (paidAmount || total).toFixed(2);
+            if (change > 0) html += ' — Vuelto: S/ ' + change.toFixed(2);
+        }
+        if (comprobante) html += '<br>' + (comprobante === "factura" ? "Factura" : "Boleta");
+        html += '</div>';
+
+        html += '<div class="tk-thanks">Gracias por su preferencia</div>';
+
+        document.getElementById("ticket-content").innerHTML = html;
+        document.getElementById("ticket-overlay").style.display = "flex";
+    },
+
+    closeTicket: function() {
+        document.getElementById("ticket-overlay").style.display = "none";
+    },
+
+    printTicket: function() {
+        window.print();
+    },
+
+    _esc: function(s) {
+        if (!s) return "";
+        var d = document.createElement("div");
+        d.textContent = s;
+        return d.innerHTML;
     },
 
     // ================================================

@@ -47,6 +47,7 @@ var DASH = {
         setInterval(DASH._clock, 1000);
         DASH.loadStats();
         DASH.refreshTimer = setInterval(function() { DASH.loadStats(); }, 15000);
+        DASH._checkPush();
     },
 
     _clock: function() {
@@ -89,6 +90,7 @@ var DASH = {
             self._renderBranches(data.branches);
             self._renderTopProducts(data.top_products);
             self._renderWaiters(data.waiters);
+            if (data.active_staff) self._renderStaff(data.active_staff);
         })
         .catch(function(e) { console.error("[Dashboard]", e); });
     },
@@ -197,6 +199,60 @@ var DASH = {
                 '<span class="waiter-total">S/ ' + DASH._fmt(w.total) + '</span>';
             ul.appendChild(li);
         });
+    },
+
+    // ====== RENDER: Staff ======
+    _renderStaff: function(data) {
+        var section = document.getElementById("staff-section");
+        var ul = document.getElementById("staff-list");
+        if (!data || data.length === 0) {
+            section.classList.add("hide");
+            return;
+        }
+        section.classList.remove("hide");
+        ul.innerHTML = "";
+        data.forEach(function(s) {
+            var initials = s.name.split(" ").map(function(n) { return n[0]; }).join("").substring(0, 2).toUpperCase();
+            var li = document.createElement("li");
+            li.className = "waiter-item";
+            li.innerHTML =
+                '<span class="waiter-avatar" style="background:#22c55e22;color:#22c55e">' + initials + '</span>' +
+                '<span class="waiter-name">' + DASH._esc(s.name) + ' <small style="color:#78716c">' + DASH._esc(s.role) + '</small></span>' +
+                '<span class="waiter-total">' + s.hours_today.toFixed(1) + 'h</span>';
+            ul.appendChild(li);
+        });
+    },
+
+    // ====== PUSH ======
+    _checkPush: function() {
+        var banner = document.getElementById("push-banner");
+        if (typeof isPushSubscribed !== "function") return;
+        isPushSubscribed().then(function(subscribed) {
+            if (subscribed) {
+                banner.classList.add("hide");
+            } else {
+                banner.classList.remove("hide");
+            }
+        });
+    },
+
+    activatePush: function() {
+        var btn = document.getElementById("btn-push-activate");
+        btn.textContent = "Activando...";
+        btn.disabled = true;
+        if (typeof initPush === "function") {
+            initPush(DASH.token).then(function(ok) {
+                var banner = document.getElementById("push-banner");
+                if (ok) {
+                    banner.querySelector("span").textContent = "\u2705 Notificaciones activas";
+                    btn.style.display = "none";
+                    setTimeout(function() { banner.classList.add("hide"); }, 3000);
+                } else {
+                    btn.textContent = "Reintentar";
+                    btn.disabled = false;
+                }
+            });
+        }
     },
 
     // ====== UTILITIES ======
