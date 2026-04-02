@@ -115,18 +115,27 @@ def send_push(
             print("[PUSH] Todas filtradas por alert_config, saliendo")
             return
 
-        payload = json.dumps({
-            "title": title,
-            "body": body,
-            "url": url or f"/dashboard/{restaurant_id}",
-            "restaurant_id": restaurant_id,
-        })
+        print(f"[PUSH] Preparando payload...")
+        try:
+            payload = json.dumps({
+                "title": str(title),
+                "body": str(body),
+                "url": str(url or f"/dashboard/{restaurant_id}"),
+                "restaurant_id": int(restaurant_id),
+            })
+            print(f"[PUSH] Payload OK ({len(payload)} bytes)")
+        except Exception as e:
+            print(f"[PUSH] EXCEPTION en json.dumps: {type(e).__name__}: {e}")
+            return
 
         vapid_claims = {"sub": vapid_email}
+        print(f"[PUSH] vapid_claims={vapid_claims}")
+        print(f"[PUSH] Iniciando loop de {len(subscriptions)} subscriptions...")
 
-        for sub in subscriptions:
+        for i, sub in enumerate(subscriptions):
+            print(f"[PUSH] Loop iter {i}: sub.id={sub.id} user={sub.user_id}")
             try:
-                print(f"[PUSH] Enviando a sub {sub.id} user={sub.user_id} endpoint={sub.endpoint[:80]}...")
+                print(f"[PUSH] Llamando webpush para sub {sub.id} endpoint={sub.endpoint[:80]}...")
                 response = webpush(
                     subscription_info={
                         "endpoint": sub.endpoint,
@@ -140,24 +149,28 @@ def send_push(
                     vapid_claims=vapid_claims,
                 )
                 status_code = response.status_code if response else "?"
-                resp_text = (response.text[:100] if response and response.text else "") if response else ""
+                resp_text = ""
+                if response and hasattr(response, 'text') and response.text:
+                    resp_text = response.text[:100]
                 print(f"[PUSH] Response sub {sub.id}: status={status_code} body='{resp_text}'")
             except WebPushException as e:
-                # 410 Gone = subscription expired, desactivar
-                if hasattr(e, 'response') and e.response and e.response.status_code == 410:
-                    sub.is_active = False
-                    db.commit()
-                    print(f"[PUSH] Sub {sub.id} desactivada (410 Gone)")
-                else:
-                    print(f"[PUSH] WebPushException sub {sub.id}: {e}")
-                    if hasattr(e, 'response') and e.response:
-                        print(f"[PUSH]   status={e.response.status_code} body={e.response.text[:200] if e.response.text else ''}")
+                print(f"[PUSH] EXCEPTION WebPushException sub {sub.id}: {type(e).__name__}: {e}")
+                if hasattr(e, 'response') and e.response:
+                    print(f"[PUSH]   response status={e.response.status_code} body={e.response.text[:200] if e.response.text else ''}")
+                    if e.response.status_code == 410:
+                        sub.is_active = False
+                        db.commit()
+                        print(f"[PUSH]   Sub {sub.id} desactivada (410 Gone)")
             except Exception as e:
-                print(f"[PUSH] Error inesperado sub {sub.id}: {type(e).__name__}: {e}")
+                print(f"[PUSH] EXCEPTION general sub {sub.id}: {type(e).__name__}: {e}")
+                import traceback
+                traceback.print_exc()
+
+        print(f"[PUSH] Loop terminado")
 
     except Exception as e:
         import traceback
-        print(f"[PUSH] Error general en send_push: {type(e).__name__}: {e}")
+        print(f"[PUSH] EXCEPTION outer: {type(e).__name__}: {e}")
         traceback.print_exc()
 
 
