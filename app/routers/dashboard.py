@@ -81,195 +81,242 @@ async def dashboard_stats(
     period: str = Query("today", regex="^(today|week|month)$"),
     db: Session = Depends(get_db),
 ):
-    start, end = _get_date_range(period)
+    import traceback
 
-    # --- A) RESUMEN ---
-    summary = db.query(
-        sqlfunc.count(Sale.id).label("count"),
-        sqlfunc.coalesce(sqlfunc.sum(Sale.total), 0).label("total"),
-    ).filter(
-        Sale.restaurant_id == restaurant_id,
-        Sale.status == "completed",
-        Sale.created_at >= start,
-        Sale.created_at <= end,
-    ).first()
+    try:
+        start, end = _get_date_range(period)
 
-    sale_count = summary.count or 0
-    sale_total = float(summary.total or 0)
-    ticket_avg = round(sale_total / sale_count, 2) if sale_count > 0 else 0
-
-    # Ganancia estimada: total vendido - costo de items
-    # JOIN sales -> orders -> order_items -> products (cost_price)
-    cost_query = db.query(
-        sqlfunc.coalesce(
-            sqlfunc.sum(OrderItem.quantity * Product.cost_price), 0
-        )
-    ).join(
-        Order, OrderItem.order_id == Order.id
-    ).join(
-        Sale, Sale.order_id == Order.id
-    ).outerjoin(
-        Product, OrderItem.product_id == Product.id
-    ).filter(
-        Sale.restaurant_id == restaurant_id,
-        Sale.status == "completed",
-        Sale.created_at >= start,
-        Sale.created_at <= end,
-    ).scalar()
-
-    total_cost = float(cost_query or 0)
-    profit = round(sale_total - total_cost, 2)
-
-    # --- B) VENTAS POR HORA ---
-    hourly = db.query(
-        extract("hour", Sale.created_at).label("hour"),
-        sqlfunc.count(Sale.id).label("count"),
-        sqlfunc.sum(Sale.total).label("total"),
-    ).filter(
-        Sale.restaurant_id == restaurant_id,
-        Sale.status == "completed",
-        Sale.created_at >= start,
-        Sale.created_at <= end,
-    ).group_by(
-        extract("hour", Sale.created_at)
-    ).order_by("hour").all()
-
-    hourly_data = [{"hour": int(h.hour), "count": h.count, "total": float(h.total)} for h in hourly]
-
-    # --- C) COMPARATIVO POR LOCAL ---
-    branch_stats = db.query(
-        Branch.id,
-        Branch.name,
-        sqlfunc.count(Sale.id).label("count"),
-        sqlfunc.coalesce(sqlfunc.sum(Sale.total), 0).label("total"),
-    ).outerjoin(
-        Sale, and_(
-            Sale.branch_id == Branch.id,
+        # --- A) RESUMEN ---
+        summary = db.query(
+            sqlfunc.count(Sale.id).label("count"),
+            sqlfunc.coalesce(sqlfunc.sum(Sale.total), 0).label("total"),
+        ).filter(
+            Sale.restaurant_id == restaurant_id,
             Sale.status == "completed",
             Sale.created_at >= start,
             Sale.created_at <= end,
-        )
-    ).filter(
-        Branch.restaurant_id == restaurant_id,
-        Branch.is_active == True,
-    ).group_by(Branch.id, Branch.name).all()
+        ).first()
 
-    branches_data = []
-    for b in branch_stats:
-        b_count = b.count or 0
-        b_total = float(b.total or 0)
-        branches_data.append({
-            "id": b.id,
-            "name": b.name,
-            "count": b_count,
-            "total": b_total,
-            "ticket_avg": round(b_total / b_count, 2) if b_count > 0 else 0,
-        })
+        sale_count = (summary.count if summary else 0) or 0
+        sale_total = float((summary.total if summary else 0) or 0)
+        ticket_avg = round(sale_total / sale_count, 2) if sale_count > 0 else 0
 
-    # --- D) TOP 10 PLATOS ---
-    top_products = db.query(
-        OrderItem.product_name,
-        sqlfunc.sum(OrderItem.quantity).label("qty"),
-        sqlfunc.sum(OrderItem.line_total).label("total"),
-    ).join(
-        Order, OrderItem.order_id == Order.id
-    ).join(
-        Sale, Sale.order_id == Order.id
-    ).filter(
-        Sale.restaurant_id == restaurant_id,
-        Sale.status == "completed",
-        Sale.created_at >= start,
-        Sale.created_at <= end,
-        OrderItem.status != "cancelled",
-    ).group_by(
-        OrderItem.product_name
-    ).order_by(
-        sqlfunc.sum(OrderItem.quantity).desc()
-    ).limit(10).all()
+        # Ganancia estimada
+        total_cost = 0.0
+        try:
+            cost_query = db.query(
+                sqlfunc.coalesce(
+                    sqlfunc.sum(OrderItem.quantity * sqlfunc.coalesce(Product.cost_price, 0)), 0
+                )
+            ).join(
+                Order, OrderItem.order_id == Order.id
+            ).join(
+                Sale, Sale.order_id == Order.id
+            ).outerjoin(
+                Product, OrderItem.product_id == Product.id
+            ).filter(
+                Sale.restaurant_id == restaurant_id,
+                Sale.status == "completed",
+                Sale.created_at >= start,
+                Sale.created_at <= end,
+            ).scalar()
+            total_cost = float(cost_query or 0)
+        except Exception:
+            traceback.print_exc()
 
-    top_data = [
-        {"rank": i + 1, "name": t.product_name, "qty": float(t.qty), "total": float(t.total)}
-        for i, t in enumerate(top_products)
-    ]
+        profit = round(sale_total - total_cost, 2)
 
-    # --- E) RANKING MOZOS ---
-    waiter_stats = db.query(
-        User.id,
-        User.short_name,
-        User.name,
-        sqlfunc.count(Order.id).label("orders"),
-        sqlfunc.coalesce(sqlfunc.sum(Order.total), 0).label("total"),
-    ).join(
-        Order, Order.waiter_id == User.id
-    ).join(
-        Sale, Sale.order_id == Order.id
-    ).filter(
-        User.restaurant_id == restaurant_id,
-        User.role == "waiter",
-        Sale.status == "completed",
-        Sale.created_at >= start,
-        Sale.created_at <= end,
-    ).group_by(
-        User.id, User.short_name, User.name
-    ).order_by(
-        sqlfunc.sum(Order.total).desc()
-    ).all()
+        # --- B) VENTAS POR HORA ---
+        hourly_data = []
+        try:
+            hourly = db.query(
+                extract("hour", Sale.created_at).label("hour"),
+                sqlfunc.count(Sale.id).label("count"),
+                sqlfunc.coalesce(sqlfunc.sum(Sale.total), 0).label("total"),
+            ).filter(
+                Sale.restaurant_id == restaurant_id,
+                Sale.status == "completed",
+                Sale.created_at >= start,
+                Sale.created_at <= end,
+            ).group_by(
+                extract("hour", Sale.created_at)
+            ).order_by("hour").all()
 
-    waiters_data = [
-        {
-            "name": w.short_name or w.name,
-            "orders": w.orders,
-            "total": float(w.total),
+            for h in hourly:
+                hourly_data.append({
+                    "hour": int(h.hour or 0),
+                    "count": h.count or 0,
+                    "total": float(h.total or 0),
+                })
+        except Exception:
+            traceback.print_exc()
+
+        # --- C) COMPARATIVO POR LOCAL ---
+        branches_data = []
+        try:
+            branch_stats = db.query(
+                Branch.id,
+                Branch.name,
+                sqlfunc.count(Sale.id).label("count"),
+                sqlfunc.coalesce(sqlfunc.sum(Sale.total), 0).label("total"),
+            ).outerjoin(
+                Sale, and_(
+                    Sale.branch_id == Branch.id,
+                    Sale.status == "completed",
+                    Sale.created_at >= start,
+                    Sale.created_at <= end,
+                )
+            ).filter(
+                Branch.restaurant_id == restaurant_id,
+                Branch.is_active == True,
+            ).group_by(Branch.id, Branch.name).all()
+
+            for b in branch_stats:
+                b_count = b.count or 0
+                b_total = float(b.total or 0)
+                branches_data.append({
+                    "id": b.id,
+                    "name": b.name,
+                    "count": b_count,
+                    "total": b_total,
+                    "ticket_avg": round(b_total / b_count, 2) if b_count > 0 else 0,
+                })
+        except Exception:
+            traceback.print_exc()
+
+        # --- D) TOP 10 PLATOS ---
+        top_data = []
+        try:
+            top_products = db.query(
+                OrderItem.product_name,
+                sqlfunc.coalesce(sqlfunc.sum(OrderItem.quantity), 0).label("qty"),
+                sqlfunc.coalesce(sqlfunc.sum(OrderItem.line_total), 0).label("total"),
+            ).join(
+                Order, OrderItem.order_id == Order.id
+            ).join(
+                Sale, Sale.order_id == Order.id
+            ).filter(
+                Sale.restaurant_id == restaurant_id,
+                Sale.status == "completed",
+                Sale.created_at >= start,
+                Sale.created_at <= end,
+                OrderItem.status != "cancelled",
+            ).group_by(
+                OrderItem.product_name
+            ).order_by(
+                sqlfunc.sum(OrderItem.quantity).desc()
+            ).limit(10).all()
+
+            for i, t in enumerate(top_products):
+                top_data.append({
+                    "rank": i + 1,
+                    "name": t.product_name or "?",
+                    "qty": float(t.qty or 0),
+                    "total": float(t.total or 0),
+                })
+        except Exception:
+            traceback.print_exc()
+
+        # --- E) RANKING MOZOS ---
+        waiters_data = []
+        try:
+            waiter_stats = db.query(
+                User.id,
+                User.short_name,
+                User.name,
+                sqlfunc.count(Order.id).label("orders"),
+                sqlfunc.coalesce(sqlfunc.sum(Order.total), 0).label("total"),
+            ).join(
+                Order, Order.waiter_id == User.id
+            ).join(
+                Sale, Sale.order_id == Order.id
+            ).filter(
+                User.restaurant_id == restaurant_id,
+                User.role == "waiter",
+                Sale.status == "completed",
+                Sale.created_at >= start,
+                Sale.created_at <= end,
+            ).group_by(
+                User.id, User.short_name, User.name
+            ).order_by(
+                sqlfunc.sum(Order.total).desc()
+            ).all()
+
+            for w in waiter_stats:
+                waiters_data.append({
+                    "name": w.short_name or w.name,
+                    "orders": w.orders or 0,
+                    "total": float(w.total or 0),
+                })
+        except Exception:
+            traceback.print_exc()
+
+        # --- F) PERSONAL ACTIVO (marcados "in" sin "out" hoy) ---
+        active_staff = []
+        try:
+            today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+            today_now = datetime.now(timezone.utc)
+
+            today_checks = db.query(Attendance).filter(
+                Attendance.restaurant_id == restaurant_id,
+                Attendance.checked_at >= today_start,
+            ).order_by(Attendance.user_id, Attendance.checked_at.desc()).all()
+
+            last_check_by_user = {}
+            for chk in today_checks:
+                if chk.user_id not in last_check_by_user:
+                    last_check_by_user[chk.user_id] = chk
+
+            for uid, chk in last_check_by_user.items():
+                if chk.check_type == "in":
+                    u = db.query(User).filter(User.id == uid).first()
+                    if not u:
+                        continue
+                    delta_h = round((today_now - chk.checked_at).total_seconds() / 3600, 2)
+                    active_staff.append({
+                        "user_id": uid,
+                        "name": u.short_name or u.name,
+                        "role": u.role,
+                        "check_in": chk.checked_at.isoformat(),
+                        "hours_today": delta_h,
+                    })
+        except Exception:
+            traceback.print_exc()
+
+        return {
+            "period": period,
+            "summary": {
+                "sale_count": sale_count,
+                "sale_total": sale_total,
+                "ticket_avg": ticket_avg,
+                "profit": profit,
+                "total_cost": total_cost,
+            },
+            "hourly": hourly_data,
+            "branches": branches_data,
+            "top_products": top_data,
+            "waiters": waiters_data,
+            "active_staff": active_staff,
         }
-        for w in waiter_stats
-    ]
 
-    # --- F) PERSONAL ACTIVO (marcados "in" sin "out" hoy) ---
-    today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
-    today_now = datetime.now(timezone.utc)
-
-    # Ultimo check de cada usuario hoy
-    today_checks = db.query(Attendance).filter(
-        Attendance.restaurant_id == restaurant_id,
-        Attendance.checked_at >= today_start,
-    ).order_by(Attendance.user_id, Attendance.checked_at.desc()).all()
-
-    # Agrupar por user: solo el ultimo check
-    last_check_by_user = {}
-    for chk in today_checks:
-        if chk.user_id not in last_check_by_user:
-            last_check_by_user[chk.user_id] = chk
-
-    active_staff = []
-    for uid, chk in last_check_by_user.items():
-        if chk.check_type == "in":
-            u = db.query(User).filter(User.id == uid).first()
-            if not u:
-                continue
-            delta_h = round((today_now - chk.checked_at).total_seconds() / 3600, 2)
-            active_staff.append({
-                "user_id": uid,
-                "name": u.short_name or u.name,
-                "role": u.role,
-                "check_in": chk.checked_at.isoformat(),
-                "hours_today": delta_h,
-            })
-
-    return {
-        "period": period,
-        "summary": {
-            "sale_count": sale_count,
-            "sale_total": sale_total,
-            "ticket_avg": ticket_avg,
-            "profit": profit,
-            "total_cost": total_cost,
-        },
-        "hourly": hourly_data,
-        "branches": branches_data,
-        "top_products": top_data,
-        "waiters": waiters_data,
-        "active_staff": active_staff,
-    }
+    except Exception:
+        traceback.print_exc()
+        # Return safe empty response instead of 500
+        return {
+            "period": period,
+            "summary": {
+                "sale_count": 0,
+                "sale_total": 0,
+                "ticket_avg": 0,
+                "profit": 0,
+                "total_cost": 0,
+            },
+            "hourly": [],
+            "branches": [],
+            "top_products": [],
+            "waiters": [],
+            "active_staff": [],
+        }
 
 
 # ============================================================
