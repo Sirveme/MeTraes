@@ -10,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 import app.models  # Cargar TODOS los modelos antes que los routers
-from app.routers import auth, tables, orders, kitchen, menu, seed, cocina_1, cocina_movil, pedido_1, carta_virtual, demo_hub, caja
+from app.routers import auth, tables, orders, kitchen, menu, seed, seed_charapoint, dashboard, cocina_1, cocina_movil, pedido_1, carta_virtual, demo_hub, caja
 
 # --- App ---
 app = FastAPI(
@@ -55,11 +55,12 @@ app.include_router(tables.router,  prefix="/api/v1/tables",  tags=["Tables"])
 app.include_router(orders.router,  prefix="/api/v1/orders",  tags=["Orders"])
 app.include_router(kitchen.router, prefix="/api/v1/kitchen", tags=["Kitchen/KDS"])
 app.include_router(seed.router,    prefix="/api/v1/seed",    tags=["Seed (dev)"])
+app.include_router(seed_charapoint.router, prefix="/api/v1/seed", tags=["Seed (dev)"])
 app.include_router(menu.router,    prefix="/api/v1/menu",    tags=["Menu"])
+app.include_router(dashboard.router, tags=["Dashboard"])
 app.include_router(cocina_1.router, tags=["KDS Screen"])
 app.include_router(cocina_movil.router, tags=["KDS Mobile"])
 app.include_router(carta_virtual.router, tags=["Carta Virtual"])
 app.include_router(demo_hub.router, tags=["Demo Hub"])
 app.include_router(caja.router, tags=["Caja"])
-
 app.include_router(pedido_1.router, tags=["POS Mesero"])
