@@ -41,16 +41,36 @@ const POS = {
         this._setupOrderListeners();
         this._setupModalListeners();
 
-        // Si hay token guardado, intentar restaurar sesión
-        const saved = localStorage.getItem('access_token');
-        if (saved) {
+        // Si hay token guardado, validar y restaurar sesión
+        const saved = localStorage.getItem('pos_token');
+        const savedUser = JSON.parse(localStorage.getItem('pos_user') || 'null');
+        if (saved && savedUser && savedUser.restaurant_id === this.config.restaurant_id) {
             this.token = saved;
-            this.user = JSON.parse(localStorage.getItem('pos_user') || 'null');
-            if (this.user) {
-                this._goToTables();
-                return;
-            }
+            this.user = savedUser;
+            // Validar token contra el servidor
+            this._validateToken();
         }
+    },
+
+    async _validateToken() {
+        try {
+            const resp = await this._fetch('/tables');
+            if (resp.ok) {
+                this._goToTables();
+            } else {
+                // Token expirado o inválido
+                this._clearSession();
+            }
+        } catch (e) {
+            this._clearSession();
+        }
+    },
+
+    _clearSession() {
+        this.token = null;
+        this.user = null;
+        localStorage.removeItem('pos_token');
+        localStorage.removeItem('pos_user');
     },
 
     // ========================================
@@ -127,7 +147,7 @@ const POS = {
             const data = await resp.json();
             this.token = data.access_token;
             this.user = data.user;
-            localStorage.setItem('access_token', this.token);
+            localStorage.setItem('pos_token', this.token);
             localStorage.setItem('pos_user', JSON.stringify(this.user));
 
             // Rol cocina → redirigir a KDS
@@ -146,10 +166,7 @@ const POS = {
     },
 
     _logout() {
-        this.token = null;
-        this.user = null;
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('pos_user');
+        this._clearSession();
         this._pinValue = '';
         this._updatePinDots();
         this._showScreen('screen-login');
@@ -267,14 +284,18 @@ const POS = {
         });
     },
 
-    _onTableClick(table) {
+    async _onTableClick(table) {
         this.currentTable = table;
         this.cart = [];
         this.currentOrder = null;
 
-        // Si la mesa tiene pedido abierto, cargar el pedido
+        // Si la mesa tiene pedido abierto, cargar el pedido ANTES de mostrar la pantalla
         if (table.current_order_id) {
-            this._loadExistingOrder(table.current_order_id);
+            await this._loadExistingOrder(table.current_order_id);
+            // Si el pedido ya fue pagado/cancelado, ignorarlo y crear uno nuevo
+            if (this.currentOrder && (this.currentOrder.status === 'paid' || this.currentOrder.status === 'cancelled')) {
+                this.currentOrder = null;
+            }
         }
 
         this._goToOrder(table);

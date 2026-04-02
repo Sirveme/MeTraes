@@ -1,6 +1,27 @@
 /* carta_virtual.js v1 — Carta Virtual (QR) */
 var CFG = window.CARTA_CONFIG;
 
+var MAT_ICONS = {
+    "ceviches":     { icon: "set_meal",     color: "#38bdf8" },
+    "tiraditos":    { icon: "set_meal",     color: "#38bdf8" },
+    "chicharrones": { icon: "skillet",      color: "#fb923c" },
+    "frituras":     { icon: "skillet",      color: "#fb923c" },
+    "arroces":      { icon: "rice_bowl",    color: "#fbbf24" },
+    "sopas":        { icon: "soup_kitchen", color: "#f87171" },
+    "caldos":       { icon: "soup_kitchen", color: "#f87171" },
+    "bebidas":      { icon: "local_cafe",   color: "#a78bfa" },
+    "postres":      { icon: "cake",         color: "#f472b6" },
+    "especiales":   { icon: "star",         color: "#fbbf24" },
+};
+var MAT_DEFAULT = { icon: "restaurant", color: "#94a3b8" };
+
+function _matIcon(catName, fontSize) {
+    var key = (catName || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    var m = MAT_ICONS[key] || MAT_DEFAULT;
+    var sz = fontSize || 28;
+    return '<span class="material-symbols-rounded" style="color:' + m.color + ';font-size:' + sz + 'px">' + m.icon + '</span>';
+}
+
 var CARTA = {
     categories: [],
     products: [],
@@ -51,7 +72,7 @@ var CARTA = {
             var btn = document.createElement("button");
             btn.className = "cat-tab";
             btn.dataset.cid = c.id;
-            btn.textContent = (c.icon || "") + " " + c.name;
+            btn.innerHTML = _matIcon(c.name, 16) + " " + CARTA._esc(c.name);
             btn.addEventListener("click", function() { CARTA.selectCategory(c.id); });
             nav.appendChild(btn);
         });
@@ -94,8 +115,8 @@ var CARTA = {
                 imgHtml = '<img class="p-img" src="' + p.image_url + '" alt="" loading="lazy">';
             } else {
                 var cat = CARTA.categories.find(function(c) { return c.id === p.category_id; });
-                var icon = (cat && cat.icon) ? cat.icon : "\ud83c\udf7d\ufe0f";
-                imgHtml = '<div class="p-img-placeholder">' + icon + '</div>';
+                var catName = (cat && cat.name) ? cat.name : "";
+                imgHtml = '<div class="p-img-placeholder">' + _matIcon(catName, 28) + '</div>';
             }
 
             // Badge
@@ -126,7 +147,21 @@ var CARTA = {
                         '<span class="p-price">' + priceDisplay + '</span>' +
                         badge +
                     '</div>' +
-                '</div>';
+                '</div>' +
+                '<button class="p-add-btn" data-pid="' + p.id + '">+</button>';
+
+            // Quick-add button: if no sizes/modifiers, add directly; else open modal
+            var addBtn = card.querySelector(".p-add-btn");
+            addBtn.addEventListener("click", function(e) {
+                e.stopPropagation();
+                var hasMods = p.modifiers && p.modifiers.length > 0;
+                var hasSizes = p.sizes && p.sizes.length > 1;
+                if (hasMods || hasSizes) {
+                    CARTA.openModal(p);
+                } else {
+                    CARTA.quickAdd(p);
+                }
+            });
 
             grid.appendChild(card);
         });
@@ -303,6 +338,23 @@ var CARTA = {
         this.cart.push(item);
         this._updateCartBtn();
         this.closeModal();
+    },
+
+    quickAdd: function(p) {
+        var price = (p.sizes && p.sizes.length === 1) ? p.sizes[0].price : p.price;
+        var item = {
+            id: Date.now(),
+            product_id: p.id,
+            name: p.name,
+            size_name: (p.sizes && p.sizes.length === 1) ? p.sizes[0].name : null,
+            modifiers: [],
+            notes: null,
+            quantity: 1,
+            unit_price: price,
+            line_total: price,
+        };
+        this.cart.push(item);
+        this._updateCartBtn();
     },
 
     removeFromCart: function(itemId) {
