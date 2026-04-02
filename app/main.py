@@ -3,18 +3,15 @@ Metraes.com — FastAPI Application
 POS Restaurantes + KDS + Carta Virtual
 """
 
-from pathlib import Path
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import FileResponse, Response
+from starlette.responses import Response
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 import app.models  # Cargar TODOS los modelos antes que los routers
 from app.routers import auth, tables, orders, kitchen, menu, seed, seed_charapoint, dashboard, cocina_1, cocina_movil, pedido_1, carta_virtual, demo_hub, caja, attendance, delivery, push, alerts
-
-BASE_DIR = Path(__file__).resolve().parent.parent  # raiz del proyecto
 
 
 # --- Crear tablas faltantes al importar (antes de que arranque el server) ---
@@ -26,6 +23,20 @@ try:
     print("=== TABLES OK ===")
 except Exception as e:
     print(f"=== TABLE CREATION ERROR: {e} ===")
+
+
+# --- Leer Service Worker al inicio — funciona en cualquier entorno ---
+_SW_CONTENT = ""
+for _sw_path in ["static/service-worker.js", "/app/static/service-worker.js"]:
+    try:
+        with open(_sw_path, "r") as f:
+            _SW_CONTENT = f.read()
+        print(f"=== SW loaded from {_sw_path} ({len(_SW_CONTENT)} bytes) ===")
+        break
+    except FileNotFoundError:
+        continue
+if not _SW_CONTENT:
+    print("=== SW NOT FOUND in any path ===")
 
 
 # --- App ---
@@ -59,13 +70,10 @@ async def landing_page(request: Request):
     return templates.TemplateResponse("home.html", {"request": request})
 
 
-# --- Service Worker (must be served from root scope, BEFORE static mount) ---
+# --- Service Worker (contenido pre-cargado, BEFORE static mount) ---
 @app.get("/service-worker.js")
 async def service_worker():
-    sw_path = BASE_DIR / "static" / "service-worker.js"
-    if sw_path.exists():
-        return FileResponse(str(sw_path), media_type="application/javascript")
-    return Response("// SW not found", media_type="application/javascript", status_code=200)
+    return Response(_SW_CONTENT or "// SW empty", media_type="application/javascript")
 
 
 # --- Static + Templates (AFTER explicit routes so they don't shadow /service-worker.js) ---
