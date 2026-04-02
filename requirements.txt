@@ -27,6 +27,10 @@ httpx==0.28.1
 # --- WebSocket ---
 websockets==14.1
 
+# --- Push Notifications ---
+pywebpush==2.0.1
+py-vapid==1.9.2
+
 # --- Utilidades ---
 python-multipart==0.0.20
 python-dotenv==1.0.1
