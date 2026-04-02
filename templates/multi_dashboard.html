@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0c0a09">
+    <title>Multi-Dashboard | Metraes.com</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/multi_dashboard.css?v=1">
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-overlay" class="overlay">
+    <div class="ov-box">
+        <div class="login-logo">METRAES</div>
+        <h2>Multi-Dashboard</h2>
+        <p class="ov-sub">Acceso para contadores / gerentes</p>
+        <input id="login-email" type="email" placeholder="correo@empresa.pe" class="text-input" autocomplete="email">
+        <input id="login-pass" type="password" placeholder="Contrasena" class="text-input" style="margin-top:8px">
+        <button id="login-btn" class="btn-accent" onclick="MULTI.doLogin()">Ingresar</button>
+        <p id="login-error" class="ov-error"></p>
+    </div>
+</div>
+
+<!-- MAIN -->
+<div id="main" style="display:none">
+    <!-- HEADER -->
+    <header class="header">
+        <div class="h-left">
+            <span class="h-logo">METRAES</span>
+            <span id="h-rest" class="h-rest">Multi-Dashboard</span>
+        </div>
+        <div class="h-right">
+            <span id="h-clock" class="h-clock"></span>
+            <span class="h-live">EN VIVO</span>
+            <button class="btn-sm" onclick="MULTI.doLogout()" title="Salir">&#x2716;</button>
+        </div>
+    </header>
+
+    <!-- PANELS GRID -->
+    <div id="panels" class="panels-grid"></div>
+
+    <!-- EMPTY STATE -->
+    <div id="empty" class="empty-state" style="display:none">
+        <div style="font-size:48px;margin-bottom:12px">&#128202;</div>
+        <div>Sin datos disponibles</div>
+    </div>
+</div>
+
+<script>window.MULTI_CONFIG = {{ config | tojson }};</script>
+<script src="/static/js/multi_dashboard.js?v=1"></script>
+</body>
+</html>

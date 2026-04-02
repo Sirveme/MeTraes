@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delivery | Metraes.com</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/delivery.css?v=1">
+</head>
+<body>
+
+<!-- PIN LOGIN -->
+<div id="pin-overlay" class="overlay">
+    <div class="ov-box">
+        <div style="font-size:40px;margin-bottom:8px">&#128661;</div>
+        <h2>DELIVERY</h2>
+        <p class="ov-sub">Ingresa tu PIN de motorizado</p>
+        <input id="pin-input" type="tel" maxlength="6" placeholder="----" class="pin-field" autocomplete="off">
+        <button id="pin-btn" class="btn-accent">Entrar</button>
+        <p id="pin-error" class="ov-error"></p>
+    </div>
+</div>
+
+<!-- MAIN -->
+<div id="main" style="display:none">
+    <!-- HEADER -->
+    <div class="header">
+        <div class="h-left">
+            <span class="h-logo">&#128661; Delivery</span>
+            <span id="h-rest" class="h-rest"></span>
+        </div>
+        <div class="h-right">
+            <span id="h-gps" class="h-gps">GPS: --</span>
+            <span id="h-user" class="h-user"></span>
+            <button id="btn-logout" class="btn-sm" title="Salir">&#x2716;</button>
+        </div>
+    </div>
+
+    <!-- STATS BAR -->
+    <div class="stats-bar">
+        <div class="stat">
+            <span class="stat-num" id="stat-pending">0</span>
+            <span class="stat-label">Pendientes</span>
+        </div>
+        <div class="stat">
+            <span class="stat-num" id="stat-enroute">0</span>
+            <span class="stat-label">En camino</span>
+        </div>
+    </div>
+
+    <!-- ORDERS LIST -->
+    <div class="orders-section">
+        <div id="orders-list" class="orders-list">
+            <p class="empty-msg">Sin pedidos delivery</p>
+        </div>
+    </div>
+</div>
+
+<script>window.DELIVERY_CONFIG = {{ config | tojson }};</script>
+<script src="/static/js/delivery.js?v=1"></script>
+</body>
+</html>

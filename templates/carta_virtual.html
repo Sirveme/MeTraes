@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0">
-    <link rel="stylesheet" href="/static/css/carta_virtual.css?v=4">
+    <link rel="stylesheet" href="/static/css/carta_virtual.css?v=5">
 </head>
 <body>
 
@@ -21,6 +21,12 @@
             <span id="table-badge" class="table-badge"></span>
         </div>
     </div>
+    <!-- Order mode tabs -->
+    <nav id="mode-tabs" class="mode-tabs">
+        <button class="mode-tab active" data-mode="dine_in" onclick="CARTA.setMode('dine_in')">&#127869; En mesa</button>
+        <button class="mode-tab" data-mode="delivery" onclick="CARTA.setMode('delivery')">&#128661; Delivery</button>
+        <button class="mode-tab" data-mode="takeaway" onclick="CARTA.setMode('takeaway')">&#128230; Recoger</button>
+    </nav>
     <!-- Category tabs -->
     <nav id="cat-tabs" class="cat-tabs"></nav>
 </header>
@@ -54,6 +60,25 @@
             <div class="cart-row"><span>Subtotal</span><span id="cart-subtotal">S/ 0.00</span></div>
             <div class="cart-row total"><span>Total</span><span id="cart-total-final">S/ 0.00</span></div>
         </div>
+        <!-- Customer info (delivery/takeaway) -->
+        <div id="customer-form" class="customer-form hide">
+            <div class="cf-field">
+                <label>Nombre *</label>
+                <input id="cf-name" type="text" placeholder="Tu nombre" maxlength="100" class="cf-input">
+            </div>
+            <div class="cf-field">
+                <label>Telefono *</label>
+                <input id="cf-phone" type="tel" placeholder="999 999 999" maxlength="15" class="cf-input">
+            </div>
+            <div id="cf-address-wrap" class="cf-field hide">
+                <label>Direccion *</label>
+                <input id="cf-address" type="text" placeholder="Jr. Prospero 123" maxlength="300" class="cf-input">
+            </div>
+            <div id="cf-reference-wrap" class="cf-field hide">
+                <label>Referencia</label>
+                <input id="cf-reference" type="text" placeholder="Cerca de..." maxlength="200" class="cf-input">
+            </div>
+        </div>
         <div id="cart-notes-wrap" class="cart-notes-wrap">
             <input id="cart-notes" class="cart-notes" type="text" placeholder="Notas para el mesero (opcional)" maxlength="200">
         </div>
@@ -82,18 +107,39 @@
     </div>
 </div>
 
+<!-- Customer info form (delivery/takeaway) — inside cart drawer, injected by JS -->
+
+<!-- Waiter request button (dine_in only, shown after order sent) -->
+<button id="btn-waiter" class="btn-waiter hide" onclick="CARTA.requestWaiter()">
+    &#128587; Solicito Mozo
+</button>
+
 <!-- Success overlay -->
 <div id="success" class="success-overlay hide">
     <div class="success-box">
-        <div class="success-icon">✅</div>
+        <div class="success-icon">&#9989;</div>
         <div class="success-title">Pedido enviado</div>
         <div id="success-detail" class="success-detail"></div>
+        <button id="success-close" class="success-close-btn hide" onclick="CARTA.closeSuccess()">Seguir pidiendo</button>
+    </div>
+</div>
+
+<!-- Order tracking overlay (delivery/takeaway) -->
+<div id="tracking" class="tracking-overlay hide">
+    <div class="tracking-box">
+        <div class="tracking-header">
+            <h2>Tu pedido</h2>
+            <span id="tracking-number" class="tracking-number"></span>
+        </div>
+        <div id="tracking-steps" class="tracking-steps"></div>
+        <div id="tracking-detail" class="tracking-detail"></div>
+        <button class="tracking-new-btn" onclick="CARTA.closeTracking()">Hacer otro pedido</button>
     </div>
 </div>
 
 <script>
     window.CARTA_CONFIG = {{ config | tojson }};
 </script>
-<script src="/static/js/carta_virtual.js?v=3"></script>
+<script src="/static/js/carta_virtual.js?v=4"></script>
 </body>
 </html>

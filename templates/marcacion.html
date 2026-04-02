@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marcacion | Metraes.com</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/marcacion.css?v=1">
+</head>
+<body>
+
+<!-- PIN LOGIN -->
+<div id="pin-overlay" class="overlay">
+    <div class="ov-box">
+        <div style="font-size:40px;margin-bottom:8px">&#128100;</div>
+        <h2>MARCACION</h2>
+        <p class="ov-sub">Ingresa tu PIN</p>
+        <input id="pin-input" type="tel" maxlength="6" placeholder="----" class="pin-field" autocomplete="off">
+        <button id="pin-btn" class="btn-accent">Entrar</button>
+        <p id="pin-error" class="ov-error"></p>
+    </div>
+</div>
+
+<!-- MAIN -->
+<div id="main" style="display:none">
+    <!-- HEADER -->
+    <div class="header">
+        <div class="h-left">
+            <span class="h-logo">&#128100; Marcacion</span>
+            <span id="h-rest" class="h-rest"></span>
+        </div>
+        <div class="h-right">
+            <span id="h-clock" class="h-clock"></span>
+            <span id="h-user" class="h-user"></span>
+            <button id="btn-logout" class="btn-sm" title="Salir">&#x2716;</button>
+        </div>
+    </div>
+
+    <!-- STATUS -->
+    <div class="status-section">
+        <div id="status-card" class="status-card">
+            <div id="status-icon" class="status-icon">&#9711;</div>
+            <div id="status-text" class="status-text">Cargando...</div>
+            <div id="status-time" class="status-time"></div>
+        </div>
+    </div>
+
+    <!-- BIG BUTTON -->
+    <div class="action-section">
+        <button id="btn-check" class="btn-check" disabled>
+            <span id="btn-check-icon">&#128308;</span>
+            <span id="btn-check-label">MARCAR ENTRADA</span>
+        </button>
+        <p id="check-error" class="check-error"></p>
+        <p id="geo-status" class="geo-status"></p>
+    </div>
+
+    <!-- TODAY LIST -->
+    <div class="today-section">
+        <h3 class="section-title">Marcaciones de hoy</h3>
+        <div id="today-list" class="today-list">
+            <p class="empty-msg">Sin marcaciones</p>
+        </div>
+    </div>
+</div>
+
+<script>window.MARCACION_CONFIG = {{ config | tojson }};</script>
+<script src="/static/js/marcacion.js?v=1"></script>
+</body>
+</html>

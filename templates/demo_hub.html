@@ -219,6 +219,7 @@ function getRoles() {
             color: "#7c3aed", bg: "#f5f3ff",
             links: [
                 {label: "Abrir Caja", url: BASE + "/caja?restaurant_id=" + RID, icon: "💰"},
+                {label: "Configurar Alertas", url: BASE + "/alertas?restaurant_id=" + RID, icon: "🔔"},
             ]
         },
         {
@@ -227,7 +228,9 @@ function getRoles() {
             color: "#d97706", bg: "#fffbeb",
             links: [
                 {label: "Dashboard", url: BASE + "/dashboard/" + RID, icon: "📈"},
+                {label: "Multi-Dashboard", url: BASE + "/multi-dashboard", icon: "🏢"},
                 {label: "Abrir Caja", url: BASE + "/caja?restaurant_id=" + RID, icon: "💰"},
+                {label: "Alertas", url: BASE + "/alertas?restaurant_id=" + RID, icon: "🔔"},
             ]
         },
         {
@@ -253,6 +256,22 @@ function getRoles() {
             color: "#16a34a", bg: "#f0fdf4",
             links: [
                 {label: "Abrir Caja", url: BASE + "/caja?restaurant_id=" + RID, icon: "🧾"},
+            ]
+        },
+        {
+            key: "delivery", icon: "🛵", label: "Motorizado",
+            desc: "Recoge y entrega pedidos delivery",
+            color: "#7c3aed", bg: "#f5f3ff",
+            links: [
+                {label: "Delivery", url: BASE + "/delivery?restaurant_id=" + RID, icon: "🛵"},
+            ]
+        },
+        {
+            key: "staff", icon: "🕐", label: "Personal",
+            desc: "Marcacion de entrada/salida",
+            color: "#0891b2", bg: "#ecfeff",
+            links: [
+                {label: "Marcar Asistencia", url: BASE + "/marcacion?restaurant_id=" + RID, icon: "🕐"},
             ]
         },
     ];

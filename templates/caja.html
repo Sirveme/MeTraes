@@ -165,6 +165,17 @@
     </div>
 </div>
 
+<!-- TICKET MODAL -->
+<div id="ticket-overlay" class="overlay" style="display:none">
+    <div class="ov-box ticket-box">
+        <div id="ticket-content" class="ticket"></div>
+        <div class="ticket-actions no-print">
+            <button class="btn-ghost" onclick="CAJA.closeTicket()">Cerrar</button>
+            <button class="btn-accent" onclick="CAJA.printTicket()" style="margin-top:0">Imprimir</button>
+        </div>
+    </div>
+</div>
+
 <!-- RESUMEN MODAL -->
 <div id="resumen-overlay" class="overlay" style="display:none">
     <div class="ov-box" style="max-width:440px; text-align:left">

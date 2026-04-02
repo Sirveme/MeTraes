@@ -43,6 +43,12 @@
     <button class="filter-btn" data-period="month" onclick="DASH.setPeriod('month')">Mes</button>
 </div>
 
+<!-- Push banner -->
+<div id="push-banner" class="push-banner hide">
+    <span>&#128276; Activar notificaciones para recibir alertas en su celular</span>
+    <button id="btn-push-activate" class="btn-push-activate" onclick="DASH.activatePush()">Activar</button>
+</div>
+
 <!-- Main content -->
 <main id="content" class="dash-content hide">
 
@@ -93,11 +99,18 @@
         <ul id="waiter-list" class="waiter-list"></ul>
     </div>
 
+    <!-- F) Personal activo -->
+    <div id="staff-section" class="section">
+        <div class="section-title">Personal activo</div>
+        <ul id="staff-list" class="waiter-list"></ul>
+    </div>
+
 </main>
 
 <script>
     window.DASH_CONFIG = {{ config | tojson }};
 </script>
-<script src="/static/js/dashboard.js?v=1"></script>
+<script src="/static/js/push-manager.js?v=1"></script>
+<script src="/static/js/dashboard.js?v=2"></script>
 </body>
 </html>

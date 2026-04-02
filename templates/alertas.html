@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alertas | Metraes.com</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/alertas.css?v=1">
+</head>
+<body>
+
+<!-- PIN LOGIN -->
+<div id="pin-overlay" class="overlay">
+    <div class="ov-box">
+        <div style="font-size:40px;margin-bottom:8px">&#128276;</div>
+        <h2>ALERTAS</h2>
+        <p class="ov-sub">Ingresa tu PIN (owner/manager)</p>
+        <input id="pin-input" type="tel" maxlength="6" placeholder="----" class="pin-field" autocomplete="off">
+        <button id="pin-btn" class="btn-accent">Entrar</button>
+        <p id="pin-error" class="ov-error"></p>
+    </div>
+</div>
+
+<!-- MAIN -->
+<div id="main" style="display:none">
+    <div class="header">
+        <div class="h-left">
+            <span class="h-logo">&#128276; Alertas</span>
+            <span id="h-rest" class="h-rest"></span>
+        </div>
+        <div class="h-right">
+            <span id="h-user" class="h-user"></span>
+            <button id="btn-logout" class="btn-sm" title="Salir">&#x2716;</button>
+        </div>
+    </div>
+
+    <!-- PUSH STATUS -->
+    <div id="push-section" class="push-section">
+        <div id="push-banner" class="push-banner">
+            <span>&#128276; Activa notificaciones en este dispositivo</span>
+            <button id="btn-push" class="btn-push" onclick="ALERTAS.enablePush()">Activar</button>
+        </div>
+    </div>
+
+    <!-- ALERT CONFIGS -->
+    <div class="section-title">Tipos de alerta</div>
+    <div id="alerts-list" class="alerts-list">
+        <p class="loading">Cargando...</p>
+    </div>
+
+    <!-- TEST -->
+    <div class="test-section">
+        <button id="btn-test" class="btn-test" onclick="ALERTAS.testPush()">
+            &#128276; Enviar notificacion de prueba
+        </button>
+    </div>
+</div>
+
+<script>window.ALERTAS_CONFIG = {{ config | tojson }};</script>
+<script src="/static/js/push-manager.js?v=1"></script>
+<script src="/static/js/alertas.js?v=1"></script>
+</body>
+</html>
