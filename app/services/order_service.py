@@ -54,7 +54,8 @@ def create_order(db: Session, data: OrderCreate, restaurant_id: int, waiter_id: 
     # Agregar items
     if data.items:
         _add_items_to_order(db, order, data.items)
-    
+        db.flush()  # Flush items para que _recalculate_totals los encuentre (autoflush=False)
+
     # Actualizar mesa si aplica
     if data.table_id:
         table = db.query(Table).filter(Table.id == data.table_id).first()
@@ -74,9 +75,11 @@ def create_order(db: Session, data: OrderCreate, restaurant_id: int, waiter_id: 
 def add_items(db: Session, order: Order, data: OrderAddItems) -> Order:
     """Agrega items a pedido abierto (sin cerrar y reabrir)."""
     if order.status in ("paid", "cancelled"):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Pedido cerrado, no se pueden agregar items")
-    
+        print(f"[add_items] RECHAZADO: order {order.id} status={order.status}")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Pedido {order.status}, no se pueden agregar items")
+
     _add_items_to_order(db, order, data.items)
+    db.flush()  # Flush nuevos items para que _recalculate_totals los encuentre (autoflush=False)
     _recalculate_totals(db, order)
     
     db.commit()
@@ -174,4 +177,4 @@ def _recalculate_totals(db: Session, order: Order):
     
     order.subtotal = subtotal
     order.tax_amount = tax_amount.quantize(Decimal("0.01"))
-    order.total = subtotal + order.tip_amount + order.delivery_fee - order.discount_amount
+    order.total = subtotal + (order.tip_amount or 0) + (order.delivery_fee or 0) - (order.discount_amount or 0)
