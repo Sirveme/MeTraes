@@ -16,8 +16,16 @@ from app.models.user import User
 
 logger = logging.getLogger(__name__)
 
-VAPID_PRIVATE_KEY = os.environ.get("VAPID_PRIVATE_KEY", "")
-VAPID_CLAIMS_EMAIL = os.environ.get("VAPID_CLAIMS_EMAIL", "mailto:duil@perusistemas.pro")
+
+def _get_vapid_private_key():
+    return os.environ.get("VAPID_PRIVATE_KEY", "")
+
+
+def _get_vapid_claims_email():
+    email = os.environ.get("VAPID_CLAIMS_EMAIL", "mailto:duil@perusistemas.pro")
+    if email and not email.startswith("mailto:"):
+        email = "mailto:" + email
+    return email
 
 
 def send_push(
@@ -39,11 +47,14 @@ def send_push(
     try:
         print(f"[PUSH] send_push called: restaurant={restaurant_id}, title='{title}', roles={roles}, user_ids={user_ids}, alert_type={alert_type}")
 
-        if not VAPID_PRIVATE_KEY:
+        vapid_key = _get_vapid_private_key()
+        vapid_email = _get_vapid_claims_email()
+
+        if not vapid_key:
             print("[PUSH] VAPID_PRIVATE_KEY no configurada, skipping")
             return
 
-        print(f"[PUSH] VAPID_PRIVATE_KEY present ({len(VAPID_PRIVATE_KEY)} chars)")
+        print(f"[PUSH] VAPID_PRIVATE_KEY present ({len(vapid_key)} chars), claims_email={vapid_email}")
 
         from pywebpush import webpush, WebPushException
 
@@ -111,12 +122,12 @@ def send_push(
             "restaurant_id": restaurant_id,
         })
 
-        vapid_claims = {"sub": VAPID_CLAIMS_EMAIL}
+        vapid_claims = {"sub": vapid_email}
 
         for sub in subscriptions:
             try:
-                print(f"[PUSH] Enviando a sub {sub.id} user={sub.user_id} endpoint={sub.endpoint[:60]}...")
-                webpush(
+                print(f"[PUSH] Enviando a sub {sub.id} user={sub.user_id} endpoint={sub.endpoint[:80]}...")
+                response = webpush(
                     subscription_info={
                         "endpoint": sub.endpoint,
                         "keys": {
@@ -125,10 +136,12 @@ def send_push(
                         },
                     },
                     data=payload,
-                    vapid_private_key=VAPID_PRIVATE_KEY,
+                    vapid_private_key=vapid_key,
                     vapid_claims=vapid_claims,
                 )
-                print(f"[PUSH] Enviado OK a sub {sub.id}")
+                status_code = response.status_code if response else "?"
+                resp_text = (response.text[:100] if response and response.text else "") if response else ""
+                print(f"[PUSH] Response sub {sub.id}: status={status_code} body='{resp_text}'")
             except WebPushException as e:
                 # 410 Gone = subscription expired, desactivar
                 if hasattr(e, 'response') and e.response and e.response.status_code == 410:
