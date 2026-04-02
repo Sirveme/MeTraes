@@ -1,0 +1,133 @@
+/* ============================================
+   marcacion.css — Marcacion de Personal
+   Warm dark theme
+   ============================================ */
+:root {
+    --bg: #0c0a09; --bg2: #1c1917; --bg3: #292524;
+    --text: #fafaf9; --text2: #a8a29e; --text3: #78716c;
+    --accent: #f59e0b; --accent2: #d97706;
+    --green: #22c55e; --green-bg: rgba(34,197,94,0.12);
+    --red: #ef4444; --red-bg: rgba(239,68,68,0.1);
+    --blue: #3b82f6; --blue-bg: rgba(59,130,246,0.12);
+    --border: #292524;
+    --font: "DM Sans", system-ui, sans-serif;
+    --mono: "JetBrains Mono", monospace;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--bg); color:var(--text); font-family:var(--font); min-height:100vh; }
+
+/* ===== OVERLAY (PIN login) ===== */
+.overlay {
+    position:fixed; inset:0; z-index:100;
+    background:rgba(12,10,9,0.92); backdrop-filter:blur(4px);
+    display:flex; align-items:center; justify-content:center;
+}
+.ov-box {
+    background:var(--bg2); border:1px solid var(--border);
+    border-radius:20px; padding:36px; text-align:center;
+    max-width:320px; width:90%;
+}
+.ov-box h2 { font-size:22px; font-weight:900; margin-bottom:4px; }
+.ov-sub { font-size:13px; color:var(--text2); margin-bottom:20px; }
+.ov-error { color:var(--red); font-size:12px; margin-top:8px; min-height:16px; }
+.pin-field {
+    width:100%; padding:14px; font-size:28px; text-align:center;
+    border:2px solid var(--border); border-radius:12px;
+    background:var(--bg); color:var(--text); font-weight:900;
+    font-family:var(--mono); outline:none;
+}
+.pin-field:focus { border-color:var(--accent); }
+.btn-accent {
+    margin-top:14px; padding:14px 40px; border:none; border-radius:12px;
+    background:var(--accent); color:#000; font-size:15px; font-weight:800;
+    cursor:pointer; font-family:var(--font); width:100%;
+}
+.btn-accent:hover { background:var(--accent2); }
+.btn-accent:disabled { opacity:0.5; cursor:not-allowed; }
+
+/* ===== HEADER ===== */
+.header {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:10px 16px; background:var(--bg2);
+    border-bottom:1px solid var(--border); height:52px;
+}
+.h-left, .h-right { display:flex; align-items:center; gap:10px; }
+.h-logo { font-size:16px; font-weight:900; }
+.h-rest { font-size:13px; color:var(--text2); }
+.h-clock { font-size:13px; font-weight:700; font-family:var(--mono); color:var(--accent); }
+.h-user { font-size:12px; color:var(--text2); font-weight:600; }
+.btn-sm {
+    width:36px; height:36px; border:1px solid var(--border); border-radius:8px;
+    background:var(--bg); color:var(--text); font-size:16px;
+    cursor:pointer; display:flex; align-items:center; justify-content:center;
+}
+
+/* ===== STATUS SECTION ===== */
+.status-section { padding:20px 16px 0; }
+.status-card {
+    background:var(--bg2); border:1px solid var(--border);
+    border-radius:16px; padding:20px; text-align:center;
+}
+.status-icon { font-size:32px; margin-bottom:8px; }
+.status-text { font-size:16px; font-weight:700; margin-bottom:4px; }
+.status-time { font-size:24px; font-weight:900; font-family:var(--mono); color:var(--accent); }
+
+.status-card.checked-in {
+    border-color:var(--green);
+    background:linear-gradient(180deg, rgba(34,197,94,0.08) 0%, var(--bg2) 100%);
+}
+.status-card.checked-out {
+    border-color:var(--text3);
+}
+
+/* ===== ACTION BUTTON ===== */
+.action-section { padding:24px 16px; text-align:center; }
+.btn-check {
+    width:100%; max-width:360px; padding:24px; border:none; border-radius:20px;
+    font-family:var(--font); font-size:20px; font-weight:900;
+    cursor:pointer; display:flex; align-items:center; justify-content:center; gap:12px;
+    transition:transform 0.1s, opacity 0.15s;
+}
+.btn-check:active { transform:scale(0.97); }
+.btn-check:disabled { opacity:0.5; cursor:not-allowed; }
+.btn-check.entrada { background:var(--green); color:#fff; }
+.btn-check.salida { background:var(--red); color:#fff; }
+
+.check-error { color:var(--red); font-size:13px; margin-top:10px; min-height:18px; }
+.geo-status { color:var(--text3); font-size:11px; margin-top:6px; }
+
+/* ===== TODAY LIST ===== */
+.today-section { padding:0 16px 24px; }
+.section-title {
+    font-size:12px; font-weight:800; text-transform:uppercase;
+    letter-spacing:1.5px; color:var(--text3); margin-bottom:10px;
+}
+.today-list { display:flex; flex-direction:column; gap:8px; }
+.empty-msg { color:var(--text3); font-size:13px; text-align:center; padding:16px; }
+
+.check-row {
+    background:var(--bg2); border:1px solid var(--border);
+    border-radius:12px; padding:12px 16px;
+    display:flex; align-items:center; gap:12px;
+}
+.check-row .cr-icon { font-size:20px; flex-shrink:0; }
+.check-row .cr-info { flex:1; }
+.check-row .cr-name { font-size:14px; font-weight:700; }
+.check-row .cr-role { font-size:11px; color:var(--text3); }
+.check-row .cr-time {
+    font-size:16px; font-weight:900; font-family:var(--mono);
+    color:var(--accent);
+}
+.check-row .cr-type {
+    font-size:10px; font-weight:800; text-transform:uppercase;
+    padding:2px 8px; border-radius:4px;
+}
+.cr-type.in { background:var(--green-bg); color:var(--green); }
+.cr-type.out { background:var(--red-bg); color:var(--red); }
+
+/* ===== RESPONSIVE ===== */
+@media (min-width:600px) {
+    .status-section, .action-section, .today-section {
+        max-width:480px; margin-left:auto; margin-right:auto;
+    }
+}

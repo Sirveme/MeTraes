@@ -264,3 +264,52 @@ body { background:var(--bg); color:var(--text); font-family:var(--font); min-hei
     box-shadow:0 4px 16px rgba(0,0,0,0.3);
 }
 .toast.show { opacity:1; }
+
+/* ===== TICKET MODAL ===== */
+.ticket-box {
+    max-width:360px; padding:20px; text-align:left;
+}
+.ticket {
+    background:#fff; color:#000; border-radius:8px;
+    padding:16px; font-family:var(--mono); font-size:12px;
+    line-height:1.5; max-height:70vh; overflow-y:auto;
+}
+.ticket .tk-center { text-align:center; }
+.ticket .tk-name { font-size:16px; font-weight:900; margin-bottom:2px; }
+.ticket .tk-ruc { font-size:11px; color:#666; }
+.ticket .tk-date { font-size:11px; color:#666; margin-bottom:6px; }
+.ticket .tk-num { font-size:18px; font-weight:900; margin:8px 0; }
+.ticket .tk-sep { border:none; border-top:1px dashed #ccc; margin:8px 0; }
+.ticket .tk-items { width:100%; }
+.ticket .tk-items td { padding:2px 0; vertical-align:top; }
+.ticket .tk-items .tk-qty { width:30px; text-align:right; padding-right:6px; }
+.ticket .tk-items .tk-iname { }
+.ticket .tk-items .tk-iprice { text-align:right; white-space:nowrap; width:70px; }
+.ticket .tk-totals { width:100%; margin-top:4px; }
+.ticket .tk-totals td { padding:2px 0; }
+.ticket .tk-totals .tk-tlabel { font-weight:600; }
+.ticket .tk-totals .tk-tval { text-align:right; font-weight:700; }
+.ticket .tk-totals .tk-grand td { font-size:16px; font-weight:900; border-top:1px solid #000; padding-top:4px; }
+.ticket .tk-pay { margin-top:6px; font-size:11px; color:#444; }
+.ticket .tk-thanks { text-align:center; margin-top:10px; font-size:11px; color:#888; font-style:italic; }
+.ticket-actions { display:flex; gap:8px; margin-top:12px; }
+.ticket-actions button { flex:1; }
+
+/* ===== PRINT ===== */
+@media print {
+    /* Hide everything */
+    body > * { display:none !important; }
+    /* Show only ticket overlay */
+    #ticket-overlay { display:flex !important; position:static !important; background:none !important; }
+    #ticket-overlay .ov-box { border:none; box-shadow:none; background:none; padding:0; max-width:80mm; }
+    #ticket-overlay .ticket {
+        background:#fff; color:#000; border-radius:0;
+        padding:0; font-family:"Courier New", monospace;
+        font-size:11px; width:80mm; max-height:none;
+        overflow:visible;
+    }
+    #ticket-overlay .ticket .tk-name { font-size:14px; }
+    #ticket-overlay .ticket .tk-num { font-size:14px; }
+    #ticket-overlay .ticket .tk-totals .tk-grand td { font-size:13px; }
+    .no-print { display:none !important; }
+}

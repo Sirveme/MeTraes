@@ -349,5 +349,128 @@ body {
 .empty-icon { font-size:48px; }
 .empty-text { font-size:16px; color:var(--text3); }
 
+/* === MODE TABS === */
+.mode-tabs {
+    display:flex; gap:4px; padding:0 16px 8px;
+}
+.mode-tab {
+    flex:1; padding:8px 6px; border:none; border-radius:10px;
+    background:rgba(255,255,255,0.08); color:rgba(255,255,255,0.6);
+    font-family:var(--font); font-size:12px; font-weight:700;
+    cursor:pointer; text-align:center;
+    transition:all 0.2s;
+}
+.mode-tab.active {
+    background:#fff; color:var(--text);
+}
+.mode-tab:active { transform:scale(0.96); }
+
+/* === CUSTOMER FORM (in cart drawer) === */
+.customer-form {
+    margin-bottom:12px; padding:12px; background:var(--bg2);
+    border-radius:12px; border:1.5px solid var(--border);
+}
+.cf-field { margin-bottom:8px; }
+.cf-field:last-child { margin-bottom:0; }
+.cf-field label {
+    display:block; font-size:11px; font-weight:700;
+    color:var(--text2); margin-bottom:3px; text-transform:uppercase;
+    letter-spacing:0.5px;
+}
+.cf-input {
+    width:100%; padding:10px 12px; border:1.5px solid var(--border);
+    border-radius:10px; font-family:var(--font); font-size:14px;
+    outline:none; background:#fff;
+}
+.cf-input:focus { border-color:var(--accent); }
+.cf-input.error { border-color:var(--accent); background:#fef2f2; }
+
+/* === WAITER REQUEST BUTTON === */
+.btn-waiter {
+    position:fixed; bottom:16px; left:16px; right:16px;
+    height:52px; border:none; border-radius:14px;
+    background:var(--green); color:#fff;
+    font-family:var(--font); font-size:16px; font-weight:700;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    box-shadow:0 4px 20px rgba(22,163,74,0.35);
+    cursor:pointer; z-index:40;
+    transition:transform 0.15s;
+}
+.btn-waiter:active { transform:scale(0.97); }
+.btn-waiter:disabled { opacity:0.5; cursor:not-allowed; }
+
+/* === SUCCESS CLOSE BUTTON === */
+.success-close-btn {
+    margin-top:16px; padding:12px 32px; border:none; border-radius:12px;
+    background:var(--accent); color:#fff;
+    font-family:var(--font); font-size:14px; font-weight:700;
+    cursor:pointer;
+}
+
+/* === TRACKING OVERLAY === */
+.tracking-overlay {
+    position:fixed; inset:0; z-index:100;
+    display:flex; align-items:center; justify-content:center;
+    background:rgba(255,255,255,0.97);
+}
+.tracking-box {
+    width:90%; max-width:400px; padding:32px 24px; text-align:center;
+}
+.tracking-header h2 { font-size:20px; font-weight:700; margin-bottom:4px; }
+.tracking-number {
+    font-size:14px; color:var(--text2); font-weight:600;
+}
+
+/* Tracking steps */
+.tracking-steps {
+    display:flex; flex-direction:column; gap:0;
+    margin:24px 0; text-align:left;
+}
+.tracking-step {
+    display:flex; align-items:flex-start; gap:12px;
+    padding:10px 0; position:relative;
+}
+.tracking-step .ts-dot {
+    width:28px; height:28px; min-width:28px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-size:14px; font-weight:700;
+    background:var(--bg2); color:var(--text3);
+    border:2px solid var(--border);
+    z-index:1;
+}
+.tracking-step.active .ts-dot {
+    background:var(--accent); color:#fff; border-color:var(--accent);
+    animation:pulse 2s infinite;
+}
+.tracking-step.done .ts-dot {
+    background:var(--green); color:#fff; border-color:var(--green);
+}
+.tracking-step .ts-line {
+    position:absolute; left:13px; top:38px; width:2px; height:calc(100% - 18px);
+    background:var(--border);
+}
+.tracking-step.done .ts-line { background:var(--green); }
+.tracking-step:last-child .ts-line { display:none; }
+
+.tracking-step .ts-info { flex:1; padding-top:3px; }
+.tracking-step .ts-label { font-size:14px; font-weight:600; }
+.tracking-step .ts-time { font-size:12px; color:var(--text3); }
+.tracking-step.pending .ts-label { color:var(--text3); }
+
+@keyframes pulse {
+    0%,100% { box-shadow:0 0 0 0 rgba(220,38,38,0.3); }
+    50% { box-shadow:0 0 0 8px rgba(220,38,38,0); }
+}
+
+.tracking-detail {
+    font-size:14px; color:var(--text2); margin-bottom:20px; line-height:1.5;
+}
+.tracking-new-btn {
+    padding:12px 32px; border:2px solid var(--border); border-radius:12px;
+    background:transparent; color:var(--text2);
+    font-family:var(--font); font-size:14px; font-weight:700;
+    cursor:pointer;
+}
+
 /* Utility */
 .hide { display:none !important; }
