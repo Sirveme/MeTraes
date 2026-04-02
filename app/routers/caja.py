@@ -595,68 +595,77 @@ async def resumen_diario(
     current_user: User = Depends(get_current_user),
 ):
     """Resumen de ventas del día con márgenes."""
-    rid = current_user.restaurant_id
-    today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+    import traceback
+    try:
+        rid = current_user.restaurant_id
+        today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
 
-    # Ventas del día
-    sales = db.query(Sale).filter(
-        Sale.restaurant_id == rid,
-        Sale.created_at >= today_start,
-        Sale.status == "completed",
-    ).all()
-
-    total_ventas = sum(float(s.total) for s in sales)
-    total_count = len(sales)
-
-    # Calcular costos de items vendidos hoy
-    order_ids = [s.order_id for s in sales if s.order_id]
-    total_cost = 0
-    items_sold = {}
-
-    if order_ids:
-        oi_list = db.query(OrderItem).filter(
-            OrderItem.order_id.in_(order_ids)
+        # Ventas del día
+        sales = db.query(Sale).filter(
+            Sale.restaurant_id == rid,
+            Sale.created_at >= today_start,
+            Sale.status == "completed",
         ).all()
-        for oi in oi_list:
-            # Buscar costo del producto
-            if oi.product_id:
-                product = db.query(Product).filter(Product.id == oi.product_id).first()
-                if product and product.cost_price:
-                    total_cost += float(product.cost_price) * oi.quantity
 
-            # Conteo de items vendidos
-            name = oi.product_name or f"Producto {oi.product_id}"
-            if name in items_sold:
-                items_sold[name]["qty"] += oi.quantity
-                items_sold[name]["total"] += float(oi.line_total)
-            else:
-                items_sold[name] = {"qty": oi.quantity, "total": float(oi.line_total)}
+        total_ventas = sum(float(s.total or 0) for s in sales)
+        total_count = len(sales)
 
-    # Top productos
-    top_products = sorted(items_sold.items(), key=lambda x: x[1]["qty"], reverse=True)[:10]
+        # Calcular costos de items vendidos hoy
+        order_ids = [s.order_id for s in sales if s.order_id]
+        total_cost = 0.0
+        items_sold = {}
 
-    # Por método de pago
-    by_payment = {}
-    for s in sales:
-        pm = s.payment_method or "otro"
-        if pm not in by_payment:
-            by_payment[pm] = {"count": 0, "total": 0}
-        by_payment[pm]["count"] += 1
-        by_payment[pm]["total"] += float(s.total)
+        if order_ids:
+            oi_list = db.query(OrderItem).filter(
+                OrderItem.order_id.in_(order_ids)
+            ).all()
+            for oi in oi_list:
+                qty = float(oi.quantity or 1)
 
-    margin = total_ventas - total_cost
-    margin_pct = (margin / total_ventas * 100) if total_ventas > 0 else 0
+                # Buscar costo del producto
+                if oi.product_id:
+                    product = db.query(Product).filter(Product.id == oi.product_id).first()
+                    if product and product.cost_price:
+                        total_cost += float(product.cost_price) * qty
 
-    return {
-        "fecha": date.today().isoformat(),
-        "total_ventas": round(total_ventas, 2),
-        "total_count": total_count,
-        "total_cost": round(total_cost, 2),
-        "margin": round(margin, 2),
-        "margin_pct": round(margin_pct, 1),
-        "by_payment": by_payment,
-        "top_products": [
-            {"name": name, "qty": data["qty"], "total": round(data["total"], 2)}
-            for name, data in top_products
-        ],
-    }
+                # Conteo de items vendidos
+                name = oi.product_name or f"Producto {oi.product_id}"
+                line = float(oi.line_total or 0)
+                if name in items_sold:
+                    items_sold[name]["qty"] += qty
+                    items_sold[name]["total"] += line
+                else:
+                    items_sold[name] = {"qty": qty, "total": line}
+
+        # Top productos
+        top_products = sorted(items_sold.items(), key=lambda x: x[1]["qty"], reverse=True)[:10]
+
+        # Por método de pago
+        by_payment = {}
+        for s in sales:
+            pm = s.payment_method or "otro"
+            if pm not in by_payment:
+                by_payment[pm] = {"count": 0, "total": 0.0}
+            by_payment[pm]["count"] += 1
+            by_payment[pm]["total"] += float(s.total or 0)
+
+        margin = total_ventas - total_cost
+        margin_pct = (margin / total_ventas * 100) if total_ventas > 0 else 0
+
+        return {
+            "fecha": date.today().isoformat(),
+            "total_ventas": round(total_ventas, 2),
+            "total_count": total_count,
+            "total_cost": round(total_cost, 2),
+            "margin": round(margin, 2),
+            "margin_pct": round(margin_pct, 1),
+            "by_payment": by_payment,
+            "top_products": [
+                {"name": name, "qty": round(data["qty"], 1), "total": round(data["total"], 2)}
+                for name, data in top_products
+            ],
+        }
+    except Exception as e:
+        print(f"[CAJA ERROR] resumen: {e}")
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))

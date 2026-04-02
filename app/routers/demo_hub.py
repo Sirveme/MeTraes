@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session, joinedload
 
 from app.core.database import get_db
 from app.models.restaurant import Restaurant
+from app.models.branch import Branch
 from app.models.zone import Zone
 from app.models.table import Table
 from app.models.user import User
@@ -35,6 +36,12 @@ async def demo_hub_page(
             "request": request,
             "message": "Restaurante no encontrado.",
         })
+
+    # Obtener branches
+    branches = db.query(Branch).filter(
+        Branch.restaurant_id == restaurant_id,
+        Branch.is_active == True,
+    ).order_by(Branch.sort_order).all()
 
     # Obtener zonas y mesas con QR
     zones = db.query(Zone).filter(
@@ -62,13 +69,18 @@ async def demo_hub_page(
         "restaurant_id": restaurant_id,
         "restaurant_name": restaurant.trade_name or restaurant.name,
         "base_url": base_url,
+        "branches": [
+            {"id": b.id, "name": b.name, "code": b.code, "is_main": b.is_main}
+            for b in branches
+        ],
         "zones": [
-            {"id": z.id, "name": z.name, "short_name": z.short_name, "color": z.color}
+            {"id": z.id, "name": z.name, "short_name": z.short_name, "color": z.color, "branch_id": z.branch_id}
             for z in zones
         ],
         "tables": [
             {
                 "id": t.id, "number": t.number, "zone_id": t.zone_id,
+                "branch_id": t.branch_id,
                 "qr_code": t.qr_code,
                 "carta_url": f"{base_url}/carta/{t.qr_code}" if t.qr_code else None,
             }
@@ -77,7 +89,7 @@ async def demo_hub_page(
         "users": [
             {
                 "name": u.name, "short_name": u.short_name,
-                "role": u.role, "pin": u.pin,
+                "role": u.role, "pin": u.pin, "branch_id": u.branch_id,
             }
             for u in users
         ],

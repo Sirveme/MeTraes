@@ -43,6 +43,7 @@ async def add_items_to_order(
 ):
     """Agrega items a un pedido abierto."""
     order = _get_order(db, order_id, user.restaurant_id)
+    print(f"[orders] POST /{order_id}/items → order.status={order.status}, items_to_add={len(data.items)}")
     order = order_service.add_items(db, order, data)
     return _order_to_dict(db, order)
 
