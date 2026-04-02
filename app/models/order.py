@@ -122,7 +122,11 @@ class Order(Base):
     # --- Delivery ---
     estimated_delivery_at = Column(DateTime(timezone=True))
     delivered_at = Column(DateTime(timezone=True))
+    dispatched_at = Column(DateTime(timezone=True))
     delivery_driver_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"))
+    delivery_driver_latitude = Column(Numeric(10, 7))
+    delivery_driver_longitude = Column(Numeric(10, 7))
+    delivery_driver_updated_at = Column(DateTime(timezone=True))
     
     # --- Satisfacción ---
     rating = Column(SmallInteger)                       # 1-5 estrellas
