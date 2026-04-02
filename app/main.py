@@ -25,18 +25,31 @@ except Exception as e:
     print(f"=== TABLE CREATION ERROR: {e} ===")
 
 
-# --- Leer Service Worker al inicio — funciona en cualquier entorno ---
-_SW_CONTENT = ""
-for _sw_path in ["static/service-worker.js", "/app/static/service-worker.js"]:
-    try:
-        with open(_sw_path, "r") as f:
-            _SW_CONTENT = f.read()
-        print(f"=== SW loaded from {_sw_path} ({len(_SW_CONTENT)} bytes) ===")
-        break
-    except FileNotFoundError:
-        continue
-if not _SW_CONTENT:
-    print("=== SW NOT FOUND in any path ===")
+# --- Service Worker embebido (evita problemas de paths en Railway) ---
+_SW_CODE = """\
+self.addEventListener('push', function(event) {
+    var data = {title: 'Metraes', body: 'Nueva notificacion', url: '/'};
+    try { data = event.data.json(); } catch(e) { data.body = event.data ? event.data.text() : 'Nueva notificacion'; }
+    var options = {
+        body: data.body || '',
+        icon: '/static/img/icon-192.svg',
+        badge: '/static/img/badge-72.svg',
+        vibrate: [200, 100, 200],
+        data: { url: data.url || '/dashboard/' + (data.restaurant_id || 1) },
+    };
+    event.waitUntil(self.registration.showNotification(data.title || 'Metraes', options));
+});
+self.addEventListener('notificationclick', function(event) {
+    event.notification.close();
+    var url = event.notification.data && event.notification.data.url ? event.notification.data.url : '/';
+    event.waitUntil(clients.matchAll({type:'window',includeUncontrolled:true}).then(function(cl) {
+        for(var i=0;i<cl.length;i++){if(cl[i].url.indexOf(url)!==-1&&'focus' in cl[i])return cl[i].focus();}
+        if(clients.openWindow)return clients.openWindow(url);
+    }));
+});
+self.addEventListener('install', function(event) { self.skipWaiting(); });
+self.addEventListener('activate', function(event) { event.waitUntil(self.clients.claim()); });
+"""
 
 
 # --- App ---
@@ -70,10 +83,10 @@ async def landing_page(request: Request):
     return templates.TemplateResponse("home.html", {"request": request})
 
 
-# --- Service Worker (contenido pre-cargado, BEFORE static mount) ---
+# --- Service Worker (embebido, BEFORE static mount) ---
 @app.get("/service-worker.js")
 async def service_worker():
-    return Response(_SW_CONTENT or "// SW empty", media_type="application/javascript")
+    return Response(_SW_CODE, media_type="application/javascript")
 
 
 # --- Static + Templates (AFTER explicit routes so they don't shadow /service-worker.js) ---
