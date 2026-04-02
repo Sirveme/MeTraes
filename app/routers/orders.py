@@ -95,6 +95,45 @@ async def get_order(
     return _order_to_dict(db, order)
 
 
+@router.post("/{order_id}/request-waiter")
+async def request_waiter(
+    order_id: int,
+    db: Session = Depends(get_db),
+):
+    """
+    Cliente solicita mozo desde carta virtual.
+    Sin auth — público. Envía notificación WebSocket al mesero asignado.
+    """
+    order = db.query(Order).filter(Order.id == order_id).first()
+    if not order:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Pedido no encontrado")
+
+    # Notificar al mesero asignado
+    if order.waiter_id:
+        await manager.send_to_user(order.waiter_id, {
+            "event": "waiter_requested",
+            "data": {
+                "order_id": order.id,
+                "order_number": order.order_number,
+                "table_id": order.table_id,
+                "message": "Cliente solicita mozo",
+            }
+        })
+
+    # También notificar al canal admin
+    if order.restaurant_id:
+        await manager.send_to_admin(order.restaurant_id, {
+            "event": "waiter_requested",
+            "data": {
+                "order_id": order.id,
+                "order_number": order.order_number,
+                "table_id": order.table_id,
+            }
+        })
+
+    return {"status": "ok", "message": "Mozo notificado"}
+
+
 @router.get("")
 async def list_orders(
     status_filter: str = None,

@@ -304,3 +304,47 @@ async def create_virtual_order(
         "total": float(order.total),
         "message": "Pedido enviado. El mesero lo confirmará en breve.",
     }
+
+
+# ============================================================
+# API: Estado del pedido (público, sin auth) — para tracking
+# GET /api/v1/carta/order/{order_id}/status
+# ============================================================
+
+@router.get("/api/v1/carta/order/{order_id}/status")
+async def get_order_status(
+    order_id: int,
+    db: Session = Depends(get_db),
+):
+    """
+    Estado público del pedido para tracking (delivery/takeaway).
+    Solo retorna datos mínimos — no requiere auth.
+    """
+    order = db.query(Order).filter(Order.id == order_id).first()
+    if not order:
+        raise HTTPException(status_code=404, detail="Pedido no encontrado")
+
+    # Calcular prep time estimado
+    est_minutes = None
+    if order.sent_to_kitchen_at and order.status in ("sent", "preparing"):
+        from datetime import datetime, timezone
+        elapsed = (datetime.now(timezone.utc) - order.sent_to_kitchen_at).total_seconds() / 60
+        # Estimar basado en productos — buscar max prep_time
+        item_product_ids = [i.product_id for i in (order.items or []) if i.product_id]
+        max_prep = 15  # default
+        if item_product_ids:
+            prods = db.query(Product.prep_time_minutes).filter(
+                Product.id.in_(item_product_ids)
+            ).all()
+            if prods:
+                max_prep = max(p.prep_time_minutes or 15 for p in prods)
+        remaining = max(0, round(max_prep - elapsed))
+        est_minutes = remaining
+
+    return {
+        "order_id": order.id,
+        "order_number": order.order_number,
+        "status": order.status,
+        "order_type": order.order_type,
+        "est_minutes": est_minutes,
+    }

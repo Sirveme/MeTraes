@@ -109,6 +109,16 @@ async def abrir_caja(
     caja.current_sales_total = Decimal("0")
     db.commit()
 
+    # Push notification
+    try:
+        from app.services.push_service import notify_caja_opened
+        branch_name = ""
+        if caja.branch:
+            branch_name = caja.branch.name
+        notify_caja_opened(db, rid, current_user.short_name or current_user.name, branch_name)
+    except Exception:
+        pass
+
     return {
         "status": "opened",
         "caja_id": caja.id,
@@ -187,6 +197,16 @@ async def cerrar_caja(
 
     caja.is_open = False
     db.commit()
+
+    # Push notification
+    try:
+        from app.services.push_service import notify_caja_closed
+        branch_name = ""
+        if caja.branch:
+            branch_name = caja.branch.name
+        notify_caja_closed(db, rid, result["sales_count"], result["total_sales"], branch_name)
+    except Exception:
+        pass
 
     return result
 
@@ -399,6 +419,16 @@ async def registrar_venta(
 
     db.commit()
 
+    # Push notification
+    try:
+        from app.services.push_service import notify_sale
+        branch_name = ""
+        if caja.branch:
+            branch_name = caja.branch.name
+        notify_sale(db, rid, seq, float(total), branch_name, payment_method)
+    except Exception:
+        pass
+
     return {
         "sale_id": sale.id,
         "order_id": order.id,
@@ -575,13 +605,27 @@ async def cobrar_pedido(
 
     db.commit()
 
+    # Build items for ticket
+    order_items = db.query(OrderItem).filter(OrderItem.order_id == order.id).all()
+    items_data = [
+        {
+            "product_name": oi.product_name,
+            "quantity": float(oi.quantity),
+            "unit_price": float(oi.unit_price),
+            "line_total": float(oi.line_total),
+        }
+        for oi in order_items
+    ]
+
     return {
         "sale_id": sale.id,
         "order_id": order.id,
         "order_number": order.order_number,
         "total": float(total),
+        "igv": float(igv),
         "change": float(change),
         "payment_method": payment_method,
+        "items": items_data,
     }
 
 

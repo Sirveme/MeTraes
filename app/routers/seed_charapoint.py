@@ -195,6 +195,8 @@ async def seed_charapoint(reset: bool = False, db: Session = Depends(get_db)):
          "branch_id": branch_boulevard.id, "zone_idx": (boulevard_zones, 0)},
         {"name": "Chef Pedro", "short_name": "Pedro", "pin": "8888", "role": "kitchen",
          "branch_id": branch_centro.id},
+        {"name": "Motorizado Juan", "short_name": "Juan", "pin": "9999", "role": "delivery",
+         "branch_id": branch_centro.id},
     ]
 
     for ud in users_data:
@@ -341,5 +343,6 @@ async def seed_charapoint(reset: bool = False, db: Session = Depends(get_db)):
             "mesero_carlos": {"pin": "6666", "restaurant_id": restaurant.id},
             "mesero_jose": {"pin": "7777", "restaurant_id": restaurant.id},
             "cocina": {"pin": "8888", "restaurant_id": restaurant.id},
+            "delivery": {"pin": "9999", "restaurant_id": restaurant.id},
         },
     }
