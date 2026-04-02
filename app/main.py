@@ -3,14 +3,30 @@ Metraes.com — FastAPI Application
 POS Restaurantes + KDS + Carta Virtual
 """
 
-from fastapi import FastAPI
+from pathlib import Path
+from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from fastapi.responses import FileResponse, Response
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 import app.models  # Cargar TODOS los modelos antes que los routers
 from app.routers import auth, tables, orders, kitchen, menu, seed, seed_charapoint, dashboard, cocina_1, cocina_movil, pedido_1, carta_virtual, demo_hub, caja, attendance, delivery, push, alerts
+
+BASE_DIR = Path(__file__).resolve().parent.parent  # raiz del proyecto
+
+
+# --- Crear tablas faltantes al importar (antes de que arranque el server) ---
+from app.core.database import engine, Base
+
+print("=== CREATING TABLES (if missing) ===")
+try:
+    Base.metadata.create_all(bind=engine)
+    print("=== TABLES OK ===")
+except Exception as e:
+    print(f"=== TABLE CREATION ERROR: {e} ===")
+
 
 # --- App ---
 app = FastAPI(
@@ -30,10 +46,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# --- Static + Templates ---
-app.mount("/static", StaticFiles(directory="static"), name="static")
-templates = Jinja2Templates(directory="templates")
-
 
 # --- Health check ---
 @app.get("/health")
@@ -42,29 +54,23 @@ async def health():
 
 
 # --- Landing page ---
-from fastapi import Request
-
 @app.get("/")
 async def landing_page(request: Request):
     return templates.TemplateResponse("home.html", {"request": request})
 
 
-# --- Service Worker (must be served from root scope) ---
-from fastapi.responses import FileResponse
-import os
-
-_SW_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "static", "service-worker.js")
-
+# --- Service Worker (must be served from root scope, BEFORE static mount) ---
 @app.get("/service-worker.js")
 async def service_worker():
-    if not os.path.isfile(_SW_PATH):
-        # Fallback: intenta path relativo al cwd
-        fallback = os.path.join(os.getcwd(), "static", "service-worker.js")
-        if os.path.isfile(fallback):
-            return FileResponse(fallback, media_type="application/javascript")
-        from fastapi import HTTPException
-        raise HTTPException(status_code=404, detail="service-worker.js not found")
-    return FileResponse(_SW_PATH, media_type="application/javascript")
+    sw_path = BASE_DIR / "static" / "service-worker.js"
+    if sw_path.exists():
+        return FileResponse(str(sw_path), media_type="application/javascript")
+    return Response("// SW not found", media_type="application/javascript", status_code=200)
+
+
+# --- Static + Templates (AFTER explicit routes so they don't shadow /service-worker.js) ---
+app.mount("/static", StaticFiles(directory="static"), name="static")
+templates = Jinja2Templates(directory="templates")
 
 
 # --- Routers ---
